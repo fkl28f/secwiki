@@ -2,7 +2,7 @@
 title: Android App Security
 description: 
 published: true
-date: 2021-08-06T21:19:34.484Z
+date: 2021-08-06T21:26:24.185Z
 tags: security, android
 editor: markdown
 dateCreated: 2021-08-06T21:00:45.191Z
@@ -73,7 +73,53 @@ http://apk-deguard.com/
 https://github.com/Gyoonus/deoptfuscator
 
 ## Certificate Pinning
-https://github.com/51j0/Android-CertKiller
+- https://github.com/51j0/Android-CertKiller
+
+- Add your own CA / Configure a custom CA
+https://developer.android.com/training/articles/security-config
+
+- Configure CA in Debugging Mode
+
+https://developer.android.com/training/articles/security-config
+
+- Possible Downgrade to API 23 or lower
+
+- As Steffen said you might need to patch the app to disable certificate pinning. Most mobile apps don't use it though :) Thus you just need to enable SSL connections with self-signed certificate. To allow that with Android application do following:
+	• Download apktool from https://ibotpeaches.github.io/Apktool/
+	• Unpack apk file (according to apktool 2.4.1): java -jar apktool.jar d app.apk
+	• Modify AndroidManifest.xml by adding android:networkSecurityConfig="@xml/network_security_config" attribute to application element.
+	• Create file /res/xml/network_security_config.xml with following content:
+`<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <base-config>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>`
+	• Build patched apk: java -jar apktool.jar b app -o app_patched.apk
+	• Generate keys to sign apk: keytool -genkey -alias keys -keystore keys
+	• Sign apk file: jarsigner -verbose -keystore keys app_patched.apk keys
+	• If necessary convert apk to jar for further analysis: d2j-dex2jar.sh app.apk
+More information: https://developer.android.com/training/articles/security-config
+<https://stackoverflow.com/questions/52862256/charles-proxy-for-mobile-apps-that-use-ssl-pinning> 
+
+- A major change in Android's network security is that from Android 7.0 onwards user installed certificate authorities and
+those installed through Device Admin APIs are no longer trusted by default for apps targeting API Level 24+. This means that you may not be able to capture network traffic deriving from applications targeting API Level 24+, even with your proxy's certificate successfully installed in your device.
+To overcome this obstacle you will have to leverage another change in Android's network security, called Network Security
+Config (https://developer.android.com/training/articles/security-config.html)
+ As Google states Network Security Config lets apps customize their network security settings in a safe, declarative configuration file without modifying app code. Using this configuration file you can trust a custom set of Cas instead of the platform default.
+
+So in order to be able to capture traffic deriving from applications targeting API Level 24+, you should do thefollowing:
+• Decode the application using apktool
+• Introduce a network_security_config.xml file at res/xml folder of the application
+• Add the self signed or non public CA certificate, in PEM or DER format, to res/raw/ name_of_your_choice folder of the
+application
+• Repackage and sign the application
+
+Some Apps may ignore the system wide proxy. Then it is necessary to root the device and use ProxyDroid or launching an emulator usint the -http-proxy line option
+
 
 ## Extract Remote Certificate / Change Certificate Pinning
 `echo -n | openssl s_client -connect www.elearnsecurity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /tmp/els.cert`
@@ -108,6 +154,10 @@ Use QARK:
 `./qark --apk /home/()/Documents/MAPST/com.[name]/com.[name].apk`
 
 
+## Open .apk in Android Studio
+In Android studio: Build/Analyze APK
+
+
 ## Search for Strings
 hash
 md5
@@ -140,3 +190,15 @@ key
 API
 API_Key
 sentry
+
+## Android Screen Mirroring/Sharing to Windows 10/Linux/OSX
+https://github.com/Genymobile/scrcpy
+
+Android connecten via USB
+Developer mode & Debug mode ON
+
+## Online Tools for Analysis
+https://www.immuniweb.com/mobile/
+https://report.ostorlab.co/
+https://amaaas.com/
+https://undroid.av-comparatives.info/analysis.php
