@@ -2,7 +2,7 @@
 title: Android App Security
 description: 
 published: true
-date: 2021-08-06T21:28:57.387Z
+date: 2021-08-06T21:31:45.571Z
 tags: security, android
 editor: markdown
 dateCreated: 2021-08-06T21:00:45.191Z
