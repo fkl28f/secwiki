@@ -2,7 +2,7 @@
 title: Android App Security
 description: 
 published: true
-date: 2021-08-06T21:28:01.481Z
+date: 2021-08-06T21:28:57.387Z
 tags: security, android
 editor: markdown
 dateCreated: 2021-08-06T21:00:45.191Z
@@ -143,6 +143,8 @@ https://mobsf.github.io/docs/#/
 Setup MobFS:
 `docker pull opensecurity/mobile-security-framework-mobsf`
 `docker run -it -p 8000:8000 opensecurity/mobile-security-framework-mobsf:latest`
+
+For dynamic analysis use Genymotion (will not work in VM!): https://www.genymotion.com/
 
 ### QARK
 Install QARK on Kali:
