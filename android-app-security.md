@@ -2,7 +2,7 @@
 title: Android App Security
 description: 
 published: true
-date: 2021-08-06T21:26:53.811Z
+date: 2021-08-06T21:28:01.481Z
 tags: security, android
 editor: markdown
 dateCreated: 2021-08-06T21:00:45.191Z
@@ -134,7 +134,7 @@ Learn about certificate pinning / adding certificate to keystore in the app etc:
 https://github.com/ikust/hello-pinnedcerts
 
 
-## Static Code Analysis Tools / Websites
+## Static/Dynamic Code Analysis Tools
 
 ### MobFS
 https://github.com/MobSF/Mobile-Security-Framework-MobSF
