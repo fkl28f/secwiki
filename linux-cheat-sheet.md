@@ -2,7 +2,7 @@
 title: Linux Cheat Sheet
 description: 
 published: true
-date: 2021-08-05T21:51:52.843Z
+date: 2021-08-06T20:08:06.034Z
 tags: linux, cheatsheet, sn
 editor: markdown
 dateCreated: 2021-08-05T21:51:52.843Z
@@ -74,10 +74,21 @@ sudo dd if=raspbx-04-04-2018.img of=/dev/mmcblk0 bs=1M status=progress conv=fdat
 sudo dd if=fedora30.iso of=/dev/xyz bs=4M status=progress conv=fdatasync
 
 
-## Searching big files
+## Searching & Finding big files
 
 ### search the 10 biggest fiels/folders: 
 sudo du -a / | sort -n -r | head -n 10
+
+### Find the files with the followingin the filename:
+find . -print | grep bouncy*
+find . -iname "*jks*"   //case-insensitive
+find . -name "*jks*"   //case-sensitive
+
+### Find files with the content
+grep -ri "word" .    // case-insensitve
+grep -r "word" .    // case-nsensitve
+grep -rl "foo" *    The following will instead only output only filename, without the matching line
+
 
 ## Docker
 
