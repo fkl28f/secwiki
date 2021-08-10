@@ -2,8 +2,8 @@
 title: Windows Hardening
 description: 
 published: true
-date: 2021-08-09T14:24:57.720Z
-tags: 
+date: 2021-08-10T07:11:27.061Z
+tags: security, pentesting, windows, hardening
 editor: markdown
 dateCreated: 2021-08-09T14:24:57.720Z
 ---
