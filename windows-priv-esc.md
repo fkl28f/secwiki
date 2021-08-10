@@ -2,8 +2,8 @@
 title: Windows Privilege Escalation
 description: 
 published: true
-date: 2021-08-10T06:42:42.230Z
-tags: 
+date: 2021-08-10T07:12:09.129Z
+tags: security, pentesting, windows, privesc
 editor: markdown
 dateCreated: 2021-08-09T14:37:30.092Z
 ---
