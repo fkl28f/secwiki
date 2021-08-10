@@ -2,7 +2,7 @@
 title: Reconaissance - External
 description: 
 published: true
-date: 2021-08-09T14:49:41.403Z
+date: 2021-08-10T05:44:21.076Z
 tags: security, reconaissance, external
 editor: markdown
 dateCreated: 2021-08-09T14:39:13.316Z
@@ -37,7 +37,8 @@ whois -h whois.radb.net -- '-i origin AS21161' | grep -Eo "([0-9.]+){4}/[0-9]+" 
 
 
 ## DNS
-DNS
+https://dnsdumpster.com/
+
 	Dnsrecon -d [target.dom]
 	Dnsrecon -d [target.dom] -s -g -b -k -w -z
 	dnsenum --enum [target.dom]
