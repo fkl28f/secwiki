@@ -2,7 +2,7 @@
 title: Link Collection
 description: 
 published: true
-date: 2021-08-12T06:08:31.628Z
+date: 2021-08-12T06:15:40.174Z
 tags: security, privacy, links
 editor: markdown
 dateCreated: 2021-08-06T19:58:06.668Z
@@ -40,6 +40,9 @@ https://talosintelligence.com/reputation_center/
 https://exchange.xforce.ibmcloud.com/
 https://www.virustotal.com/
 https://www.shodan.io
+
+## Education
+https://www.zeropointsecurity.co.uk/red-team-ops/overview
 
 
 ## ! MALWARE ! BEWARE !
