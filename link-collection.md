@@ -2,7 +2,7 @@
 title: Link Collection
 description: 
 published: true
-date: 2021-08-12T06:16:45.580Z
+date: 2021-08-12T06:40:59.170Z
 tags: security, privacy, links
 editor: markdown
 dateCreated: 2021-08-06T19:58:06.668Z
@@ -12,6 +12,11 @@ dateCreated: 2021-08-06T19:58:06.668Z
 ## Threat Research Blogs
 https://www.fireeye.com/blog/threat-research.html
 
+## Threat Intelligence
+https://talosintelligence.com/reputation_center/
+https://exchange.xforce.ibmcloud.com/
+https://www.virustotal.com/
+https://www.shodan.io
 
 ## Sandbox
 https://www.joesandbox.com/
@@ -32,14 +37,9 @@ https://docs.google.com/spreadsheets/d/1b4mUxa6cDQuTV2BPC6aA-GR4zGZi0ooPYtBe4IgP
 
 
 ## Pentesting
+https://hausec.com/pentesting-cheatsheet/
 https://amsi.fail/
 
-
-## Threat Intelligence
-https://talosintelligence.com/reputation_center/
-https://exchange.xforce.ibmcloud.com/
-https://www.virustotal.com/
-https://www.shodan.io
 
 ## Education
 https://www.zeropointsecurity.co.uk/red-team-ops/overview
@@ -51,4 +51,7 @@ https://www.virustotal.com
 https://malshare.com
 https://vx-underground.org
 * see Sandbox above *
+
+
+## Link Collections
 
