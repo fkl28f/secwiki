@@ -2,7 +2,7 @@
 title: Link Collection
 description: 
 published: true
-date: 2021-08-06T19:58:06.668Z
+date: 2021-08-12T06:08:31.628Z
 tags: security, privacy, links
 editor: markdown
 dateCreated: 2021-08-06T19:58:06.668Z
@@ -21,3 +21,31 @@ https://cuckoosandbox.org/
 https://any.run/
 https://vx-underground.org/samples.html
 https://github.com/vxunderground/MalwareSourceCode
+
+
+## Hardening
+https://cisofy.com/lynis/
+
+## C2
+https://www.thec2matrix.com/matrix
+https://docs.google.com/spreadsheets/d/1b4mUxa6cDQuTV2BPC6aA-GR4zGZi0ooPYtBe4IgPsSc/edit#gid=0
+
+
+## Pentesting
+https://amsi.fail/
+
+
+## Threat Intelligence
+https://talosintelligence.com/reputation_center/
+https://exchange.xforce.ibmcloud.com/
+https://www.virustotal.com/
+https://www.shodan.io
+
+
+## ! MALWARE ! BEWARE !
+https://bazaar.abuse.ch/
+https://www.virustotal.com
+https://malshare.com
+https://vx-underground.org
+* see Sandbox above *
+
