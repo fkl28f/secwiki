@@ -2,7 +2,7 @@
 title: Reconaissance - External
 description: 
 published: true
-date: 2021-08-14T08:33:51.278Z
+date: 2021-08-14T08:34:28.403Z
 tags: security, reconaissance, external
 editor: markdown
 dateCreated: 2021-08-09T14:39:13.316Z
@@ -77,13 +77,13 @@ Specific nameserver:
 dig linux.org @8.8.8.8
 
 # Nmap
-Full TCP Syn Scan / all Ports / Enum everything
+**Full TCP Syn Scan / all Ports / Enum everything**
 nmap -vv -sS -Pn -p0- -A
 
-TCP Syn Scan / cetain ports
+**TCP Syn Scan / cetain ports**
 nmap -vv -sS -Pn -p 1-500 127.0.0.1
 
-UDP Scan only on port 53
+**UDP Scan only on port 53**
 nmap -vv -sU -Pn -p 53 127.0.0.1
 
 -A - Combines -O -sC -sV
@@ -95,6 +95,7 @@ nmap -vv -sU -Pn -p 53 127.0.0.1
 
 ### Test Scan Hosts
 scanme.nmap.org
+allports.exposed
 
 ## Google Dorks
 Use "inurl" and "filetype"
