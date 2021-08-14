@@ -2,7 +2,7 @@
 title: Privacy - First Steps
 description: 
 published: true
-date: 2021-08-14T21:44:46.025Z
+date: 2021-08-14T21:46:05.373Z
 tags: cheatsheet, privacy
 editor: markdown
 dateCreated: 2021-08-10T08:03:02.674Z
