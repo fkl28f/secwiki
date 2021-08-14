@@ -2,7 +2,7 @@
 title: Reconaissance - External
 description: 
 published: true
-date: 2021-08-14T08:34:28.403Z
+date: 2021-08-14T20:51:58.196Z
 tags: security, reconaissance, external
 editor: markdown
 dateCreated: 2021-08-09T14:39:13.316Z
@@ -37,8 +37,13 @@ whois -h whois.radb.net -- '-i origin AS21161' | grep -Eo "([0-9.]+){4}/[0-9]+" 
 
 
 ## DNS
-https://dnsdumpster.com/
-https://www.robtex.com/
+> https://dnsdumpster.com/
+> https://www.robtex.com/
+{.is-warning}
+
+
+
+
 
 	dnsrecon -d [target.dom]
 	dnsrecon -d [target.dom] -s -g -b -k -w -z
@@ -78,27 +83,42 @@ dig linux.org @8.8.8.8
 
 # Nmap
 **Full TCP Syn Scan / all Ports / Enum everything**
-nmap -vv -sS -Pn -p0- -A
+nmap -vv -sS -Pn -p0- -A --reason --version-trace 127.0.0.1
 
 **TCP Syn Scan / cetain ports**
-nmap -vv -sS -Pn -p 1-500 127.0.0.1
+nmap -vv -sS -Pn -p 1-500 --reason --version-trace 127.0.0.1
 
 **UDP Scan only on port 53**
 nmap -vv -sU -Pn -p 53 127.0.0.1
 
--A - Combines -O -sC -sV
--O - OS Enum
--sC - Script Scanning
--sV - Version Scanning
--T4 - Scan faster, more drops
--oA - Output in all three formats
+**Combine TCP/UDP Scan**
+Nmap -n -sU -sT -p21-25 --reason 192.168.0.1
 
-### Test Scan Hosts
-scanme.nmap.org
-allports.exposed
+> Run individual scripts:
+> Nmap -sV --script=[all, category, dir, script...] (IP) -p (ports)
+>   [all]  - The other is that the argument all may be used to specify every script in Nmap's database. Be cautious with this because NSE contains dangerous scripts such as exploits, brute force authentication crackers, and denial of service attacks. 
+{.is-info}
+
+
+> --version-trace - Details for version probe (sV or A)
+> --reason - Reason why port open/closed/filtered
+> -A - Combines -O -sC -sV
+> -O - OS Enum
+> -sC - Script Scanning
+> -sV - Version Scanning
+> -T4 - Scan faster, more drops
+> -oA - Output in all three formats
+{.is-info}
+
+> **Test Scan Hosts**
+> scanme.nmap.org
+> allports.exposed
+> {.is-success}
+
+
 
 ## Google Dorks
-Use "inurl" and "filetype"
+Use "inurl" and "filetype" etc
 
 ## Joomla / Wordpress / Typo3
 https://hackertarget.com/
