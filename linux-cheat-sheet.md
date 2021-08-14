@@ -2,7 +2,7 @@
 title: Linux Cheat Sheet
 description: 
 published: true
-date: 2021-08-06T20:11:36.211Z
+date: 2021-08-14T08:20:43.897Z
 tags: linux, cheatsheet, sn
 editor: markdown
 dateCreated: 2021-08-05T21:51:52.843Z
@@ -13,7 +13,6 @@ dateCreated: 2021-08-05T21:51:52.843Z
 Run from shell: QT_QPA_PLATFORM=xcb keepassxc
 
 ## View Devices/Disks/Volumes
-
 df -h
 fdisk -l
 
@@ -79,6 +78,10 @@ sudo dd if=fedora30.iso of=/dev/xyz bs=4M status=progress conv=fdatasync
 ### search the 10 biggest fiels/folders: 
 sudo du -a / | sort -n -r | head -n 10
 
+### Search for folders with a lot of files/inodes
+du --inodes -S -xS | sort -rh | sed -n '1,50{/^.\{71\}/s/^\(.\{30\}\).*\(.\{37\}\)$/\1...\2/;p}'
+find /path_to_search/ -xdev -printf '%h\n' | sort | uniq -c | sort -k 1 -n
+
 ### Find the files with the followingin the filename:
 find . -print | grep bouncy*
 find . -iname "*jks*"   //case-insensitive
@@ -88,6 +91,8 @@ find . -name "*jks*"   //case-sensitive
 grep -ri "word" .    // case-insensitve
 grep -r "word" .    // case-nsensitve
 grep -rl "foo" *    The following will instead only output only filename, without the matching line
+
+
 
 
 ## Docker
@@ -141,12 +146,10 @@ sudo rsync -avh --progress /media/veracrypt6/ /media/veracrypt7/
 
 
 ## Delete a file securely
-
 shred -v -n 25 -u -z file_you_wanna_shred
 
 
 ## Bash tipps
-
 vi .bashrc / add: alias ll='ls -alh --color=auto'
 last reboot
 journalctl -xe  //systemd log
@@ -155,7 +158,6 @@ firefox -P   //Manage profiles; location firefox profiles: /home/ak/.mozilla/fir
 
 
 ## Cron / Jobs
-
 cd /var/log/
 cat cron | grep yum-daily
 cat yum.log | grep Updated
