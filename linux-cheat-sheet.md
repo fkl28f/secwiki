@@ -2,7 +2,7 @@
 title: Linux Cheat Sheet
 description: 
 published: true
-date: 2021-08-14T08:20:43.897Z
+date: 2021-08-14T20:46:47.697Z
 tags: linux, cheatsheet, sn
 editor: markdown
 dateCreated: 2021-08-05T21:51:52.843Z
@@ -91,6 +91,19 @@ find . -name "*jks*"   //case-sensitive
 grep -ri "word" .    // case-insensitve
 grep -r "word" .    // case-nsensitve
 grep -rl "foo" *    The following will instead only output only filename, without the matching line
+
+
+## Backup / Sync Files
+**Syncs all files and deletes deleted folder/files in source / Syncs also if files already exist**
+rsync -avh --progress --delete "/path/to/source" "/path/to/destination"
+
+**Syncs all files and deletes deleted folder/files in source / Sync only the files which are not yet present in target**
+rsync -tvhr -P --delete "/source/folder "/destination/folder"
+
+> --dry-run
+> --ignore-existing  -  skip updating files that exist on receiver
+> --update - This forces rsync to skip any files which exist on the destination and have a modified time that is newer than the source file. (If an existing destination file has a modification time equal to the source file's, it will be updated if the sizes are different.)
+{.is-info}
 
 
 
