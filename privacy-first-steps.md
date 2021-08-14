@@ -2,13 +2,13 @@
 title: Privacy - First Steps
 description: 
 published: true
-date: 2021-08-10T08:03:02.674Z
+date: 2021-08-14T21:44:46.025Z
 tags: cheatsheet, privacy
 editor: markdown
 dateCreated: 2021-08-10T08:03:02.674Z
 ---
 
-# Privacy - First steps
+# Privacy - Primer
 1. Delete all your social media accounts
 2. ***Really*** delete all your social media accounts!! ;)
 3. Create overview where you have accounts (you got your keepass, right..?)
