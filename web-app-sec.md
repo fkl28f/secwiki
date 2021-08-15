@@ -2,7 +2,7 @@
 title: Web App Security
 description: 
 published: true
-date: 2021-08-15T17:56:12.827Z
+date: 2021-08-15T17:56:54.569Z
 tags: security, pentesting, webapp
 editor: markdown
 dateCreated: 2021-08-15T17:03:15.608Z
@@ -30,9 +30,7 @@ joomscan
 wpscan
 typo3scan
 dirbuster
-
-https://www.ssllabs.com/
-https://securityheaders.com/
+wfuzz https://github.com/xmendez/wfuzz
 
 # Files
 Check robots.txt
