@@ -2,7 +2,7 @@
 title: Linux Cheat Sheet
 description: 
 published: true
-date: 2021-08-15T17:29:49.311Z
+date: 2021-08-15T17:51:07.433Z
 tags: linux, cheatsheet, sn
 editor: markdown
 dateCreated: 2021-08-05T21:51:52.843Z
@@ -16,6 +16,11 @@ Run from shell: QT_QPA_PLATFORM=xcb keepassxc
 df -h
 fdisk -l
 
+
+## WSL2 Kali GUI
+Start xrdp
+sudo service xrdp start
+Windows mstsc => Kali
 
 ## Write/Read File or Image with DD
 
