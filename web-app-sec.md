@@ -2,8 +2,8 @@
 title: Web App Security
 description: 
 published: true
-date: 2021-08-15T17:10:10.753Z
-tags: 
+date: 2021-08-15T17:18:14.490Z
+tags: security, pentesting, webapp
 editor: markdown
 dateCreated: 2021-08-15T17:03:15.608Z
 ---
