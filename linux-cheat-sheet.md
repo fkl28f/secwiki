@@ -2,7 +2,7 @@
 title: Linux Cheat Sheet
 description: 
 published: true
-date: 2021-08-15T17:26:27.706Z
+date: 2021-08-15T17:29:49.311Z
 tags: linux, cheatsheet, sn
 editor: markdown
 dateCreated: 2021-08-05T21:51:52.843Z
