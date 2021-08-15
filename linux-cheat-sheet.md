@@ -2,7 +2,7 @@
 title: Linux Cheat Sheet
 description: 
 published: true
-date: 2021-08-14T20:46:47.697Z
+date: 2021-08-15T17:26:27.706Z
 tags: linux, cheatsheet, sn
 editor: markdown
 dateCreated: 2021-08-05T21:51:52.843Z
@@ -182,3 +182,28 @@ crontab -l
 https://crontab.guru
 - or - 
 Write directly to /etc/crontab schreiben
+
+
+## Unattended update/upgrade / Ubuntu 20.04 TLS
+sudo timedatectl set-timezone Europe/Zurich
+sudo apt update && sudo apt upgrade
+sudo apt install unattended-upgrades apt-listchanges
+sudo dpkg-reconfigure -plow unattended-upgrades
+sudo vi /etc/apt/apt.conf.d/50unattended-upgrades
+	Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+	Unattended-Upgrade::Remove-Unused-Dependencies "true";
+	Unattended-Upgrade::Automatic-Reboot "true";
+	Unattended-Upgrade::Automatic-Reboot-Time "22:00";
+
+sudo nano /etc/apt/apt.conf.d/20auto-upgrades
+	APT::Periodic::Update-Package-Lists "1";
+	APT::Periodic::Download-Upgradeable-Packages "1";
+	APT::Periodic::AutocleanInterval "7";
+	APT::Periodic::Unattended-Upgrade "1";
+
+sudo unattended-upgrades --dry-run
+
+cat /var/log/unattended-upgrades/unattended-upgrades.log
+
+Link
+https://www.linuxbabe.com/ubuntu/automatic-security-update-unattended-upgrades-ubuntu
