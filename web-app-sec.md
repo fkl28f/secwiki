@@ -2,13 +2,28 @@
 title: Web App Security
 description: 
 published: true
-date: 2021-08-15T17:25:14.790Z
+date: 2021-08-15T17:56:12.827Z
 tags: security, pentesting, webapp
 editor: markdown
 dateCreated: 2021-08-15T17:03:15.608Z
 ---
 
 # Web Application Security
+## SSL / TLS
+**SSL/TLS Enumeration**
+https://www.ssllabs.com/ssltest/
+https://tls.imirhil.fr/
+https://www.digicert.com/help/
+https://www.thesslstore.com/ssltools/ssl-checker.php
+https://gf.dev/tls-scanner
+
+**Security Headers**
+https://securityheaders.com/
+
+**SSL/TLS Configuration Recommendations**
+https://ssl-config.mozilla.org/
+https://wiki.mozilla.org/Security/Server_Side_TLS
+
 ## Tools
 whatweb -v target.com
 joomscan
