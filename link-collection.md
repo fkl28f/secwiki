@@ -2,7 +2,7 @@
 title: Link Collection
 description: 
 published: true
-date: 2021-08-15T17:48:14.142Z
+date: 2021-10-11T09:42:50.269Z
 tags: security, privacy, links
 editor: markdown
 dateCreated: 2021-08-06T19:58:06.668Z
@@ -44,6 +44,9 @@ https://amsi.fail/
 ## Education
 https://www.zeropointsecurity.co.uk/red-team-ops/overview
 
+## OSINT
+https://osintframework.com/
+https://osint.link/
 
 ## ! MALWARE ! BEWARE !
 https://bazaar.abuse.ch/
