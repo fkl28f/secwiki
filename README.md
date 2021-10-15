@@ -1,1 +1,6 @@
-# secwiki
+---
+coverY: 0
+---
+
+# SecWiki
+
