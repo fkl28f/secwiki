@@ -1,47 +1,40 @@
----
-title: Web App Security
-description: 
-published: true
-date: 2021-08-15T17:56:54.569Z
-tags: security, pentesting, webapp
-editor: markdown
-dateCreated: 2021-08-15T17:03:15.608Z
----
+# Web App Security Start
 
-# Web Application Security
-## SSL / TLS
-**SSL/TLS Enumeration**
-https://www.ssllabs.com/ssltest/
-https://tls.imirhil.fr/
-https://www.digicert.com/help/
-https://www.thesslstore.com/ssltools/ssl-checker.php
-https://gf.dev/tls-scanner
+## SSL / TLS Enumeration
 
-**Security Headers**
-https://securityheaders.com/
+### SSL / TLS Test Sites
 
-**SSL/TLS Configuration Recommendations**
-https://ssl-config.mozilla.org/
-https://wiki.mozilla.org/Security/Server_Side_TLS
+* https://www.ssllabs.com/ssltest/
+* https://tls.imirhil.fr/
+* https://www.thesslstore.com/ssltools/ssl-checker.php&#x20;
+* https://gf.dev/tls-scanner
 
-## Tools
-whatweb -v target.com
-joomscan
-wpscan
-typo3scan
-dirbuster
-wfuzz https://github.com/xmendez/wfuzz
+### **SSL/TLS Configuration Recommendations**&#x20;
 
-# Files
-Check robots.txt
-Check .htaccess 
+* https://ssl-config.mozilla.org/&#x20;
+* https://wiki.mozilla.org/Security/Server\_Side\_TLS
 
-## JWT 
-https://jwt.io/
-Jwt_tool - https://github.com/ticarpi/jwt_tool
-https://github.com/ticarpi/jwt_tool/wiki/Attack-Methodology
+## **Security Headers**&#x20;
 
-## Test Safebrowsing 
-http://testsafebrowsing.appspot.com/
-https://wiki.mozilla.org/Security/Safe_Browsing
-https://transparencyreport.google.com/safe-browsing/search?hl=en
+* https://securityheaders.com/
+
+## Scanners
+
+whatweb -v target.com&#x20;
+
+joomscan, wpscan, typo3scan, dirbuster, wfuzz
+
+## Files
+
+* Check robots.txt&#x20;
+* Check .htaccess
+
+## JWT
+
+https://jwt.io/ Jwt\_tool - https://github.com/ticarpi/jwt\_tool https://github.com/ticarpi/jwt\_tool/wiki/Attack-Methodology
+
+## Test Safebrowsing
+
+* http://testsafebrowsing.appspot.com/&#x20;
+* https://wiki.mozilla.org/Security/Safe\_Browsing&#x20;
+* https://transparencyreport.google.com/safe-browsing/search?hl=en
