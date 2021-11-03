@@ -27,7 +27,6 @@
 * [Intrusion / Exploitation](pentesting/intrusion-exploitation.md)
 * [Lateral Movement - Internal](pentesting/lateral-movement-internal.md)
 * [Windows Client Hardening](pentesting/windows-hardening.md)
-* [Privilege Escalation](pentesting/privilege-escalation.md)
 * [Windows Privilege Escalation](pentesting/windows-priv-esc.md)
 * [Metasploit](pentesting/metasploit.md)
 
