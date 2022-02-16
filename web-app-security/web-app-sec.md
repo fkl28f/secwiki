@@ -4,23 +4,23 @@
 
 ### SSL / TLS Test Sites
 
-* https://www.ssllabs.com/ssltest/
-* https://tls.imirhil.fr/
-* https://www.thesslstore.com/ssltools/ssl-checker.php&#x20;
-* https://gf.dev/tls-scanner
+* [https://www.ssllabs.com/ssltest](https://www.ssllabs.com/ssltest)
+* [https://tls.imirhil.fr/](https://tls.imirhil.fr)
+* [https://www.thesslstore.com/ssltools/ssl-checker.php ](https://www.thesslstore.com/ssltools/ssl-checker.php)
+* [https://gf.dev/tls-scanner](https://gf.dev/tls-scanner)
 
 ### **SSL/TLS Configuration Recommendations**&#x20;
 
-* https://ssl-config.mozilla.org/&#x20;
-* https://wiki.mozilla.org/Security/Server\_Side\_TLS
+* [https://ssl-config.mozilla.org ](https://ssl-config.mozilla.org)
+* [https://wiki.mozilla.org/Security/Server\_Side\_TLS](https://wiki.mozilla.org/Security/Server\_Side\_TLS)
 
 ## **Security Headers**&#x20;
 
-* https://securityheaders.com/
+* [https://securityheaders.com](https://securityheaders.com)
 
 ## Scanners
 
-whatweb -v target.com&#x20;
+whatweb -v target.com
 
 joomscan, wpscan, typo3scan, dirbuster, wfuzz
 
@@ -31,14 +31,18 @@ joomscan, wpscan, typo3scan, dirbuster, wfuzz
 
 ## JWT
 
-https://jwt.io/ Jwt\_tool - https://github.com/ticarpi/jwt\_tool https://github.com/ticarpi/jwt\_tool/wiki/Attack-Methodology
+[https://jwt.io/ ](https://jwt.io)
+
+Jwt\_tool - [https://github.com/ticarpi/jwt\_tool ](https://github.com/ticarpi/jwt\_tool)
+
+[https://github.com/ticarpi/jwt\_tool/wiki/Attack-Methodology](https://github.com/ticarpi/jwt\_tool/wiki/Attack-Methodology)
 
 ## Test Safebrowsing
 
-* https://testsafebrowsing.appspot.com&#x20;
-* https://wiki.mozilla.org/Security/Safe\_Browsing&#x20;
-* https://transparencyreport.google.com/safe-browsing/search?hl=en
+* [https://testsafebrowsing.appspot.com](https://testsafebrowsing.appspot.com)
+* [https://wiki.mozilla.org/Security/Safe\_Browsing ](https://wiki.mozilla.org/Security/Safe\_Browsing)
+* [https://transparencyreport.google.com/safe-browsing/search?hl=en](https://transparencyreport.google.com/safe-browsing/search?hl=en)
 
-## Links
+## Webhook
 
 [https://webhook.site/](https://webhook.site)
