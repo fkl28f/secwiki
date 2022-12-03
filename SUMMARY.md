@@ -3,6 +3,7 @@
 * [SecWiki](README.md)
 * [🎯 Active Directory](active-directory.md)
 * [AD Basics & PowerShell Basics](ad-basics-and-powershell-basics.md)
+* [AD - Domain Enumeration](ad-domain-enumeration.md)
 
 ## 📱 Mobile Application Security
 

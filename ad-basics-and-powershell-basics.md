@@ -40,24 +40,23 @@ Get-command -CommandType cmdlet - List all cmdlets
 
 It is NOT a security boundary
 
-Powershell -exectionpolicy bypass
-
-powershell -ep bypass
-
-Powershell -c \<cmd>
-
+Powershell -exectionpolicy bypass\
+powershell -ep bypass\
+Powershell -c \<cmd>\
 Powersehll -encodedcommand $env:PSExecutionPolicyPreference="bypass"
 
 &#x20;
 
+### Execute .PS1 File
+
+. .\PowerView.ps1
+
 ### Module
 
-Import a module/file
-
+Import a module/file\
 Import-Module \<modulepath>
 
-List all comamnds of a module:
-
+List all comamnds of a module:\
 Get-Command -Module \<modulename>
 
 &#x20;
