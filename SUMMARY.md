@@ -1,6 +1,8 @@
 # Table of contents
 
 * [SecWiki](README.md)
+* [🎯 Active Directory](active-directory.md)
+* [AD Basics & PowerShell Basics](ad-basics-and-powershell-basics.md)
 
 ## 📱 Mobile Application Security
 
