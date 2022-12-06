@@ -15,6 +15,8 @@ $ADclass::GetCurrentDomain()
   * Works fine with Constrained Language Mode
   * Microsoft Signed - low detection
 
+## **PowerView Basic Domain Enumeration**
+
 **Get Current Domain**\
 Get-NetDomain\
 _Get-ADDomain_
@@ -23,12 +25,291 @@ _Get-ADDomain_
 Get-NetDomain -domain dom.local\
 _Get-ADDomain -identity dom.local_
 
-**Get domain SID for the corrent domain**\
+**Get domain SID for the current domain**\
 Get-DomainSID\
 _(Get-ADDomain).Domain.SID_
 
+**Get the domain password policy** \
+****Get-DomainPolicy\
+(Get-DomainPolicy)."System Access" \
+net accounts
+
+## 👪 PowerView users groups and computers
+
+**Get Information of domain controller DC**\
+Get-NetDomainController\
+Get-NetDomainController | select-object Name\
+_Get-ADDomainController  //includes if LDAP/LDAPS Port Number_\
+_Get-ADDomainController -DomainName moneycorp.local -Discover_
+
+**Get information of users in the domain**\
+****Get-NetUser\
+Get-NetUser -Username
+
+**Get list of all users**\
+Get-NetUser | select samaccountname\
+Get-NetUser -Username student1\
+\
+_Get-ADUser -Filter \* -Properties \*_ \
+_Get-ADUser -Identity student1 -Properties \*_
+
+**Get list of usernames, last logon and password last set** \
+Get-NetUser | select samaccountname, lastlogon, pwdlastset Get-NetUser | select samaccountname, lastlogon, pwdlastset | Sort-Object -Property lastlogon
+
+**Get list of usernames and their groups**\
+Get-NetUser | select samaccountname, memberof
+
+**Get list of all properties for users in the current domain**\
+Get-Userproperty -Properties pwdlastset
+
+_Get-ADUser -Filter \* -Properties \* | select -First 1 | Get-Member -MemberType \*Property | select Name_\
+_Get-ADUser -Filter \* -Properties \* | select name,@{expression={\[datetime]::fromFileTime($\_.pwdlastset)\}}_
+
+{% hint style="info" %}
+Properties like badpwdcount and pwdlastset help in identifying decoy objects / honeypots.
+{% endhint %}
+
+**Get descripton field from the user / Search in user description** \
+Find-UserField -SearchField Description -SearchTerm "built" \
+Get-netuser | Select-Object samaccountname,description\
+\
+_Get-ADUser -Filter 'Description -like "built"' -Properties Description | select name,description_
 
 
-__
 
-__
+**Get computer information** \
+Get-NetComputer \
+Get-NetComputer -FullData \
+Get-NetComputer -Computername -FullData\
+\
+_Get-ADComputer -Filter \* | select Name_\
+_Get-ADComputer -Filter 'OperatingSystem -like "Server2016"' -Properties OperatingSystem | select Name, OperatingSystem_\
+_Get-ADComputer -Filter \* -Properties DNSHostName | %{Test-Connection -Count 1 -ComputerName $\_.DNSHostName}_\
+_Get-ADComputer -Filter \* -Properties \*_
+
+**Get computers with operating system** \
+Get-NetComputer -OperatingSystem "_Server 2016_"
+
+**Get list of all computer names and operating systems** \
+Get-NetComputer -fulldata | select samaccountname, operatingsystem, operatingsystemversion
+
+**List all groups of the domain** \
+Get-NetGroup\
+Get-NetGroup -FullData \
+Get-NetGroup -GroupName _admin_ \
+Get-NetGroup -Domain domainname
+
+_Get-ADGroup -Filter \* | select Name_\
+_Get-ADGroup -Filter \* -Properties \*_
+
+**Get all the members of the group** \
+Get-NetGroupMember -Groupname "Domain Admins" -Recurse\
+Get-NetGroupMember -Groupname "Domain Admins" -Recurse | select MemberName
+
+**Get all the domain groups containing the word "admin" in group name**\
+Get-NetGroup -GroupName \*_admin\*_\
+_Get-ADGroup -Filter 'Name -like "admin"' | select Name_
+
+**Get the group membership of a user** \
+Get-NetGroup -Username "username"\
+_Get-ADPrincipalGroupMembership -Identity student1_
+
+**List all the local groups on a machine (needs admin privs on non dc machines)** \
+Get-NetlocalGroup -Computername \[hostname] -ListGroups
+
+**Get Member of all the local groups on a machine (needs admin privs on non dc machines)** \
+Get-NetlocalGroup -Computername \[hostname] -Recurse
+
+**Get actively logged users on a computer (needs local admin privs)** \
+Get-NetLoggedon -Computername \[hostname]
+
+**Get locally logged users on a computer (needs remote registry rights on the target)** \
+Get-LoggedonLocal -Computername \[hostname]
+
+**Get the last logged users on a computer (needs admin rights and remote registary on the target)** \
+****Get-LastLoggedOn -Computername \[hostname]
+
+## 📃 Powerview shares
+
+**Find shared on hosts in the current domain** \
+Invoke-ShareFinder -Verbose \
+Invoke-ShareFinder -ExcludeStandard -ExcludePrint -ExcludeIPC
+
+**Find sensitive files (PWs, Keys etc.) on computers in the domain** \
+Invoke-FileFinder -Verbose
+
+**Get all fileservers of the domain** (\
+Get-NetFileServer
+
+{% hint style="info" %}
+Searches for high value targets (machines/servers where lot of users authenticate to)
+{% endhint %}
+
+
+
+## Powerview GPO
+
+**Get list of GPO's in the current domain**\
+Get-NetGPO\
+Get-NetGPO | select displayname\
+Get-NetGPO -Computername \[hostname]
+
+gpresult /R
+
+**Get GPO's which uses restricteds groups or groups.xml for interesting users**\
+Get-NetGPOGroup
+
+{% hint style="info" %}
+Restricted groups are those groups that are pushed through the group policy and are part of the local groups on your machineinfo
+{% endhint %}
+
+**Get users which are in a local group of a machine using GPO**\
+Find-GPOComputerAdmin -Computername \[hostname]
+
+**Get machines where the given user is member of a specific group**\
+****Find-GPOLocation -Username \[username] -Verbose
+
+**Get OU's in a domain**\
+Get-NetOU -Fulldata\
+_Get-ADOrganizationalUnit -Filter \* -Properties \*_
+
+**Get machines that are part of an OU**\
+Get-NetOU StudentMachines | %{Get-NetComputer -ADSPath $\_}
+
+**Get GPO applied on an OU gplink from** \
+Get-NetGPO -GPOname "{ID...}"\
+Get-GPO -Guid ID
+
+## Powerview ACL
+
+{% hint style="info" %}
+**Access Control Model**
+
+1. Enables control on the ability of a process to access objects and the other resources in Active Directory based on :
+   * Access Tokens (security context of a process - identity & privs of a user)
+   * Security Descriptors (SID of the owner, Discretionary ACL (DACL) & System ACL (SACL))
+{% endhint %}
+
+{% hint style="info" %}
+**Access Control List**
+
+1. List of Access Control Entries (ACE)
+   * ACE corresponds to individual permission or audit access. (Who has permission and what can be done on an object?)
+2. Two types of ACLs :
+3. DACL = Defines the permissions trustees (a user or group) have on an object.
+4. SACL = logs success and failure audit messages when an object is accessed
+5. ACLs are vital to security architecture of an AD
+{% endhint %}
+
+
+
+**Get the ACL's associated with the specified object**\
+Get-ObjectACL -SamAccountName -ResolveGUIDS
+
+**Get the ACL's associated with the specified prefix to be used for search**\
+Get-ObjectACL -ADSprefix 'CN=Administrator,CN=Users' -Verbose \
+_(Get-Acl 'AD:\CN=Administrator,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local').Access_
+
+**Get the ACL's associated with the specified path**\
+****Get-PathAcl -Path \\\sysvol
+
+**Search for interesting ACL's**\
+Invoke-ACLScanner -ResolveGUIDs \
+Invoke-ACLScanner -ResolveGUIDs | select IdentityReference, ObjectDN, ActiveDirectoryRights | fl
+
+**Search of interesting ACL's for the current user** \
+Invoke-ACLScanner | Where-Object {$\_.IdentityReference –eq \[System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
+
+## Powerview Domain trust
+
+{% hint style="info" %}
+**Trusts**
+
+1. In an AD environment, trust is a relationship between two domains or forests which allow users of one domain or forest to access resources in the other domain or forest.
+2. Trusts can be automatic (parent-child, same forest etc.) or established (forest, external)
+3. Trusted domain objects (TDOs) represent the trust relationships in a domain
+{% endhint %}
+
+{% hint style="info" %}
+**Trust Directions**
+
+1. One-way trust : Unidirectional --> Users in the trusted domain can access resources in the trusting domain, but the reverse is not true.
+2. Bi-directional trust Trust Properties
+3. Transitive trusts
+4. Non-transitive trust
+{% endhint %}
+
+{% hint style="info" %}
+**Types of Trusts**
+
+1. Default / Automatic Trusts (Eg : Intra-forest trusts)
+2. Shortcut Trusts (Used to reduce access time in complex scenarios)
+3. External Trusts (b/w two domains in different forests when forests do not have a trust relationship)
+4. Forest trusts (b/w root domains of a forest)
+{% endhint %}
+
+**Get a list of all the domain trusts for the current domain** \
+Get-NetDomainTrust\
+_Get-ADTrust_ \
+_Get-ADTrust -Identity us.dollarcorp.moneycorp.local_
+
+**Get details about the forest** \
+Get-NetForest
+
+**Get all domains in the forest** \
+Get-NetForestDomain \
+Get-NetforestDomain -Forest\
+_Get-ADForest_ \
+_Get-ADForest -Identity eurocorp.local_
+
+**Get global catalogs for the current forest**\
+Get-NetForestCatalog\
+Get-NetForestCatalog -Forest\
+Get-ADForest | select -ExpandProperty GlobalCatalogs
+
+**Map trusts of a forest**\
+Get-NetForestTrust \
+Get-NetForestTrust -Forest \
+Get-NetForestDomain -Verbose | Get-NetDomainTrust\
+_Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'_
+
+## User Hunting
+
+**Find all machines on the current domain where the current user has local admin access**\
+****Find-LocalAdminAccess -Verbose
+
+{% hint style="info" %}
+This function queries the DC of the current or provided domain for a list of computers (Get-NetComputer) and then use multi-threaded Invoke-CheckLocalAdminAccess on each of those machines. Since this function is extremely noisy and can cause a network spike, it is better to run it in chunks of machines (using the option -ComputerFile) rather than all machines at once. The function leaves a 4624 (logon event) or 4634 (logoff event) for each machine on the domain.
+
+This same function can also be done with the help of remote administration tools like WMI and powershell remoting. It is pretty useful in cases where ports of RPC and SMB (which are used by Find-LocalAdminAccess) are blocked. In such cases, you can use an alternate tool --> Find-WMILocalAdminAccess.ps1 (this is because, WMI by-default requires local admin access)
+{% endhint %}
+
+**Find local admins on all machines of the domain**\
+Invoke-EnumerateLocalAdmin -Verbose
+
+{% hint style="info" %}
+This function queries the DC of the current or provided domain for a list of computers (Get-NetComputer) and then use multi-threaded Get-NetLocalGroup on each machine.
+{% endhint %}
+
+**Find computers where a specified user/group (domain admins or RDPusers or etc.) has sessions (by-default Domain admins group)**\
+****Invoke-UserHunter Invoke-UserHunter -GroupName "RDPUsers"
+
+{% hint style="info" %}
+This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of computers (Get-NetComputer) and list sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
+{% endhint %}
+
+To find where our current user has local admin privs on servers that have domain admin sessions\
+Invoke-UserHunter -CheckAccess
+
+
+
+Find computers (high value targets) where a domain admin is logged-in\
+Invoke-UserHunter -Stealth
+
+{% hint style="info" %}
+This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of only high value targets (high traffic servers) - DC, File servers & distributed file servers, for being stealthy and generating lesser traffic and lists sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
+{% endhint %}
+
+
+
+_Thx to_ [_https://github.com/0xJs/CRTP-cheatshee_](https://github.com/0xJs/CRTP-cheatshee)_t,_ [_https://github.com/thatonesecguy/CRTP-CheatSheet_](https://github.com/thatonesecguy/CRTP-CheatSheet)__
