@@ -4,6 +4,10 @@
 * [🎯 Active Directory](active-directory.md)
 * [AD Basics & PowerShell Basics](ad-basics-and-powershell-basics.md)
 * [AD - Domain Enumeration](ad-domain-enumeration.md)
+* [AD - Lateral Movement / Connections](ad-lateral-movement-connections.md)
+* [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
+* [Local Privilege Escalation](local-privilege-escalation.md)
+* [Golden Ticket](golden-ticket.md)
 
 ## 📱 Mobile Application Security
 

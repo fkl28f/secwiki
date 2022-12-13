@@ -34,7 +34,14 @@ Get-Help cmdlet\_name -Examples
 
 Get-command -CommandType cmdlet - List all cmdlets
 
-&#x20;
+
+
+**Use this parameter to not print errors powershell**\
+****-ErrorAction SilentlyContinue
+
+**Rename powershell windows**\
+****$host.ui.RawUI.WindowTitle = "name"\
+****&#x20;
 
 ### Execution Policy
 
@@ -59,6 +66,16 @@ Download [https://github.com/samratashok/ADModule](https://github.com/samratasho
 
 Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose\
 Import-Module .\ActiveDirectory\ActiveDirectory.psd1
+
+{% hint style="info" %}
+Most of the AD Modules have the -Filter -Properties and -Identity options!
+
+Get-AD-User -Filter \* -Properties \*\
+Get-AD-User -Identity username1 -Properties \*
+{% endhint %}
+
+\
+
 
 iex (new-Object Net.WebClient).DownloadString('[https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1');Import-ActiveDirectory](https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1'\);Import-ActiveDirectory)
 

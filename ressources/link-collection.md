@@ -1,6 +1,5 @@
 ---
 title: Link Collection
-description: null
 published: true
 date: 2021-10-11T09:42:50.269Z
 tags: security, privacy, links
@@ -56,7 +55,7 @@ https://www.thec2matrix.com/matrix https://docs.google.com/spreadsheets/d/1b4mUx
 
 [https://hausec.com/pentesting-cheatsheet/ ](https://hausec.com/pentesting-cheatsheet/)
 
-[https://amsi.fail/](https://amsi.fail)
+[https://amsi.fail/](https://amsi.fail/)
 
 ## Education
 
@@ -76,7 +75,7 @@ https://www.thec2matrix.com/matrix https://docs.google.com/spreadsheets/d/1b4mUx
 
 * see Sandbox above \*
 
-[https://bazaar.abuse.ch/ ](https://bazaar.abuse.ch)
+[https://bazaar.abuse.ch/ ](https://bazaar.abuse.ch/)
 
 [https://www.virustotal.com ](https://www.virustotal.com)
 
