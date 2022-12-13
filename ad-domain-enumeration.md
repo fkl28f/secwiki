@@ -139,7 +139,7 @@ Get-LoggedonLocal -Computername \[hostname]
 **Get the last logged users on a computer (needs admin rights and remote registary on the target)** \
 ****Get-LastLoggedOn -Computername \[hostname]
 
-## **💻Powerview Computer**
+## **💻PowerView Computer**
 
 **Get computer information** \
 Get-NetComputer \
@@ -162,7 +162,7 @@ Get-NetComputer -fulldata | select samaccountname, operatingsystem, operatingsys
 
 ****
 
-## 📃 Powerview shares
+## 📃 PowerView shares
 
 **Find shared on hosts in the current domain** (readable or writeable ones)\
 Invoke-ShareFinder -Verbose \
@@ -181,7 +181,7 @@ E.g. Domain Controller, Fileserver Role installed, Exchange, Sharepoint
 
 
 
-## 📕Powerview GPO
+## 📕PowerView GPO
 
 **Get list of GPO's in the current domain**\
 Get-NetGPO\
@@ -218,7 +218,7 @@ Get-NetOU StudentMachines | %{Get-NetComputer -ADSPath $\_}
 Get-NetGPO -GPOname '{ID...}'\
 _Get-GPO -Guid ID_
 
-## 🎰Powerview ACL
+## 🎰PowerView ACL
 
 {% hint style="info" %}
 **Access Control Model**
@@ -243,7 +243,7 @@ _Get-GPO -Guid ID_
 
 
 
-![](<.gitbook/assets/image (1).png>)
+![](<.gitbook/assets/image (1) (1).png>)
 
 **Get the ACL's associated with the specified object**\
 Get-ObjectACL -SamAccountName \[username] -ResolveGUIDS\
@@ -265,66 +265,84 @@ Invoke-ACLScanner -ResolveGUIDs | select IdentityReference, ObjectDN, ActiveDire
 **Search of interesting ACL's for the current user** \
 Invoke-ACLScanner | Where-Object {$\_.IdentityReference –eq \[System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
 
-## 🚥Powerview Domain trust
+## 🚥PowerView Domain trust
 
 {% hint style="info" %}
 **Trusts**
 
-1. In an AD environment, trust is a relationship between two domains or forests which allow users of one domain or forest to access resources in the other domain or forest.
-2. Trusts can be automatic (parent-child, root-leafrootsame forest etc.) or established (forest, external)
-3. Trusted domain objects (TDOs) represent the trust relationships in a domain
+* In an AD environment, trust is a relationship between two domains or forests which allow users of one domain or forest to access resources in the other domain or forest.
+* Trusts can be automatic (parent-child, root-leaf, same forest etc.) or established accross forest boundry (forest, external)
+* Each Trust has a Trusted domain objects (TDOs) that represent the trust relationships in a domain&#x20;
 {% endhint %}
 
 {% hint style="info" %}
 **Trust Directions**
 
-1. One-way trust : Unidirectional --> Users in the trusted domain can access resources in the trusting domain, but the reverse is not true.
-2. Bi-directional trust Trust Properties
-3. Transitive trusts
-4. Non-transitive trust
+* One-way trust : Unidirectional --> Users in the trusted domain can access resources in the trusting domain, but the reverse is not true.
+* Bi-directional trust - Both Domain can access Ressources in the other Domain&#x20;
+
+Trust Properties
+
+*   Transitive trusts - The Trusts ca be extended to establish trust relationships with other domains e.g. Domain A to C via B
+
+    All default intra-forest trust relationships (tree-root, parent-child) between domains within the same forest are transitive two-way trsuts
+* Non-transitive trust - Cannot be extended to other domains in the forest. Can be two-way or one-way. This is default trust (called external trust) between two domains in different forests when forests do not have any trust relationship
 {% endhint %}
+
+![](<.gitbook/assets/image (4).png>)
 
 {% hint style="info" %}
 **Types of Trusts**
 
-1. Default / Automatic Trusts (Eg : Intra-forest trusts)
-2. Shortcut Trusts (Used to reduce access time in complex scenarios)
-3. External Trusts (b/w two domains in different forests when forests do not have a trust relationship)
-4. Forest trusts (b/w root domains of a forest)
+* Default / Automatic Trusts (Eg : Intra-forest trusts - two-way transitive trusts within a forest is default)
+* Tree-Root Trust - When add a new domain to a forest/tree, this is also an automatic two-way transitive Trust
+* Shortcut Trusts - Used to reduce access time in complex scenarios, Can be one or two way transitive
+* External Trusts - b/w two domains in different forests when forests do not have a trust relationship. Can be one or two way and is always nontransitive (can not be changed).
+* Forest trusts - b/w root domains of a forest. Can not be extended to a third forest (no implicit trust), can be one or two way and transitive or nontransitive
 {% endhint %}
+
+![](<.gitbook/assets/image (5).png>)
+
+
 
 **Get a list of all the domain trusts for the current domain** \
 Get-NetDomainTrust\
+Get-NetDomainTrust -Domain domain.local\
 _Get-ADTrust_ \
-_Get-ADTrust -Identity us.dollarcorp.moneycorp.local_
+_Get-ADTrust -Filter \*_\
+_Get-ADTrust -Identity  domain.local_
 
 **Get details about the forest** \
-Get-NetForest
+Get-NetForest\
+Get-NetForest -Forest forest.local\
+_Get-ADForest_\
+_Get-ADForest -Identity forest.local_
 
-**Get all domains in the forest** \
+**❗Ge t all domains in the forest** \
 Get-NetForestDomain \
-Get-NetforestDomain -Forest\
-_Get-ADForest_ \
+Get-NetforestDomain -Forest forestname.local\
+(_Get-ADForest).Domains_\
 _Get-ADForest -Identity eurocorp.local_
 
 **Get global catalogs for the current forest**\
 Get-NetForestCatalog\
-Get-NetForestCatalog -Forest\
+Get-NetForestCatalog -Forest forest.local\
 Get-ADForest | select -ExpandProperty GlobalCatalogs
 
-**Map trusts of a forest**\
+&#x20;**Map trusts of a forest**\
 Get-NetForestTrust \
-Get-NetForestTrust -Forest \
+Get-NetForestTrust -Forest forest.local  \
 Get-NetForestDomain -Verbose | Get-NetDomainTrust\
 _Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'_
 
 ## 🔫User Hunting
 
-**Find all machines on the current domain where the current user has local admin access**\
+**Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)** \
 ****Find-LocalAdminAccess -Verbose
 
 . ./Find-WMILocalAdminAccess.ps1\
-Find-WMILocalAdminAccess
+Find-WMILocalAdminAccess\
+Find-WMILocalAdminAccess - Computerfile computer.txt -verbose (all domain Computerhostnames from Get-NetComputer)
 
 . ./Find-PSRemotingLocalAdminAccess.ps1\
 Find-PSRemotingLocalAdminAccess
@@ -337,15 +355,15 @@ This function queries the DC of the current or provided domain for a list of com
 This same function can also be done with the help of remote administration tools like WMI and powershell remoting. It is pretty useful in cases where ports of RPC and SMB (which are used by Find-LocalAdminAccess) are blocked. In such cases, you can use an alternate tool --> Find-WMILocalAdminAccess.ps1 (this is because, WMI by-default requires local admin access)
 {% endhint %}
 
-**Find local admins on all machines of the domain**\
+**Find local admins on all machines of the domain (needs admin privs on non-dc machines)** \
 Invoke-EnumerateLocalAdmin -Verbose
 
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for a list of computers (Get-NetComputer) and then use multi-threaded Get-NetLocalGroup on each machine.
 {% endhint %}
 
-**Find computers where a specified user/group (domain admins or RDPusers or etc.) has sessions (by-default Domain admins group)**\
-****Invoke-UserHunter \
+**❗Find computers where a specified user/group (domain admins or RDPusers or etc.) has sessions (by-default Domain admins group) - and we have local admin on that machine**\
+****Invoke-UserHunter -Verbose\
 Invoke-UserHunter -GroupName "RDPUsers"
 
 **Find active sessions of domain admins**\
@@ -358,25 +376,28 @@ This function queries the DC of the current or provided domain for members of th
 **To find where our current user has local admin privs on servers that have domain admin sessions**\
 Invoke-UserHunter -CheckAccess
 
-****
-
 **Find computers (high value targets) where a domain admin is logged-in**\
 Invoke-UserHunter -Stealth
 
 {% hint style="info" %}
-This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of only high value targets (high traffic servers) - DC, File servers & distributed file servers, for being stealthy and generating lesser traffic and lists sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
+This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of **only high value targets** (high traffic servers) - DC, File servers & distributed file servers, for being stealthy and generating lesser traffic and lists sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
 {% endhint %}
 
-****
+**Manually get Sessions of a Computer**\
+****Get-NetSession -Computername hostname.local
 
 ****
 
-**Defense against User Hunting**
+## **🛡Defense against Enumeration / User Hunting**
 
 {% hint style="info" %}
-NetCease is a script that changes permissions on the NetSessionEnum method by removing permission for authenticated users group.
+Most enumeration mixes well with legit traffic!
 
-This fails many of the attacker's session enumeration and hence user hunting capabilities
+Monitor for certain windows events which are an anomaly (lots of requests from one source).
+
+NetCease is a script that changes permissions on the NetSessionEnum method by removing permission for Authenticated Users group.
+
+This fails many of the attacker's session enumeration and hence user hunting capabilities - but it will break stuff!
 
 .\NetCease.ps1\
 Restart-Service -Name Server -Force
@@ -384,7 +405,15 @@ Restart-Service -Name Server -Force
 To revert back to pre-netcease state:\
 .\NetCease.ps1 -Revert \
 Restart-Service -Name Server -Force
+
+
 {% endhint %}
+
+{% hint style="info" %}
+Another intersting script is SAMRi10 which hardens W10 and Server 2016 against enumeration which uses SAMR protocol (like net.exe)
+{% endhint %}
+
+
 
 ****
 
