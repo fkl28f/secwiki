@@ -11,6 +11,10 @@
 
 ## Service Issues using PowerUp
 
+**Do all checks**\
+. .\PowerUp.ps1\
+Invoke-AllChecks
+
 **Get services with unquoted paths an a space in their name**\
 GetServiceUnquoted -Verbose
 
