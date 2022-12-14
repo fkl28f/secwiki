@@ -7,7 +7,11 @@
 * AlwaysInstallElevated (Any user can run MSI as SYSTEM)
 * Misonfigured Services (e.g. Unquoted Service path, Permissions with Services/Directories
 * DLL Hijacking                 &#x20;
-* Tools: PowerUp, BeRoot, Privesc, Seatbelt
+* Tools: \
+  PowerUp - . .\PowerUp.ps1 Invoke-AllCheck\
+  BeRoot - .\beRoot.exe\
+  Privesc - . .\PrivEsc.ps1 Invoke-PrivEsc\
+  Seatbelt - .\seatbelt.exe all&#x20;
 
 ## Service Issues using PowerUp
 
@@ -15,8 +19,12 @@
 . .\PowerUp.ps1\
 Invoke-AllChecks
 
+The Parameter "StartName" is the privilege e.g. LocalSystem\
+The Parameter "CanRestart" is useful so we can restart it on our own and dont have to restart machine/wait until the service is restarted
+
 **Get services with unquoted paths an a space in their name**\
-GetServiceUnquoted -Verbose
+GetServiceUnquoted -Verbose\
+Get-WmiObject -Class win32\_service | select pathname
 
 **Get services where the current user can write to its binary path or change arguments to the binary**\
 Get-ModifiableServiceFile -Verbose&#x20;
@@ -24,13 +32,7 @@ Get-ModifiableServiceFile -Verbose&#x20;
 **Get the services whose configuration current user can modify (e.g ACLs of the Service, maybe point service to different executable**\
 ****Get-ModifiableService -Verbose&#x20;
 
-****
-
-****
-
-## Seatbelt Checks
-
-.\seatbelt.exe all
+##
 
 ## **Misc**
 
