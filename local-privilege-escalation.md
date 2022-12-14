@@ -32,7 +32,29 @@ Get-ModifiableServiceFile -Verbose&#x20;
 **Get the services whose configuration current user can modify (e.g ACLs of the Service, maybe point service to different executable**\
 ****Get-ModifiableService -Verbose&#x20;
 
-##
+
+
+## Abusing Enterprise Applications
+
+* If Windows based, the often run as SYSTEM or Local Administrator
+* Often overlooked by the Security team
+* CI/CD Tools are interesting for abuse because they often need local high privilege - e.g Jenkins
+* Jenkins
+  * Anonymous read rights are/were default and you could see the build executor like Windows Server....
+  * No Bruteforce Protection / No lockout / No PW policy for Jenkins local accounts (Check UserID)
+  * When we have admin to Jenkins Server: http://url/script => Get you to the script console, Goovy scripts can be executed
+    * That code will run on the build master (not the slaves)
+    * ![](<.gitbook/assets/image (6).png>)
+  * Try Username:Username, Usern:ReverseOfUsername etc.
+  * Try to "Configure"a  Project and add build step "Execute Windows Batch Command and enter "powershell -c \<command>&#x20;
+    * http://url/job/\[ProjectName]/configure => 200 Code if we have the permissions=> Check with Burp for all Projects
+    * Check all Projects with all Users
+    * Put your build step as the first one, so it wil get executed no matter the errors of other steps
+    *   E.g
+
+        <figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+
+
 
 ## **Misc**
 
