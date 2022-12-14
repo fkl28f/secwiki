@@ -243,7 +243,7 @@ _Get-GPO -Guid ID_
 
 
 
-![](<.gitbook/assets/image (1) (1).png>)
+![](<.gitbook/assets/image (1).png>)
 
 **Get the ACL's associated with the specified object**\
 Get-ObjectACL -SamAccountName \[username] -ResolveGUIDS\
@@ -289,7 +289,7 @@ Trust Properties
 * Non-transitive trust - Cannot be extended to other domains in the forest. Can be two-way or one-way. This is default trust (called external trust) between two domains in different forests when forests do not have any trust relationship
 {% endhint %}
 
-![](.gitbook/assets/image.png)
+![](<.gitbook/assets/image (4).png>)
 
 {% hint style="info" %}
 **Types of Trusts**
@@ -301,7 +301,7 @@ Trust Properties
 * Forest trusts - b/w root domains of a forest. Can not be extended to a third forest (no implicit trust), can be one or two way and transitive or nontransitive
 {% endhint %}
 
-![](<.gitbook/assets/image (4).png>)
+![](.gitbook/assets/image.png)
 
 
 

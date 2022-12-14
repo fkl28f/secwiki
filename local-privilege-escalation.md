@@ -7,7 +7,7 @@
 * AlwaysInstallElevated (Any user can run MSI as SYSTEM)
 * Misonfigured Services (e.g. Unquoted Service path, Permissions with Services/Directories
 * DLL Hijacking                 &#x20;
-* Tools: PowerUp, BeRoot, Privesc
+* Tools: PowerUp, BeRoot, Privesc, Seatbelt
 
 ## Service Issues using PowerUp
 
@@ -27,6 +27,10 @@ Get-ModifiableServiceFile -Verbose&#x20;
 ****
 
 ****
+
+## Seatbelt Checks
+
+.\seatbelt.exe all
 
 ## **Misc**
 
