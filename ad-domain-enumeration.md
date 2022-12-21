@@ -243,7 +243,7 @@ _Get-GPO -Guid ID_
 
 
 
-![](<.gitbook/assets/image (1).png>)
+![](<.gitbook/assets/image (1) (1).png>)
 
 **Get the ACL's associated with the specified object**\
 Get-ObjectACL -SamAccountName \[username] -ResolveGUIDS\

