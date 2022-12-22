@@ -5,7 +5,7 @@
 * [AD - Basics & PowerShell Basics](ad-basics-and-powershell-basics.md)
 * [AD - Domain Enumeration](ad-domain-enumeration.md)
 * [AD - Lateral Movement / Connections](ad-lateral-movement-connections.md)
-* [AD - Domain Dominance](ad-domain-dominance.md)
+* [AD - Domain Dominance / Persistence](ad-domain-dominance-persistence.md)
 * [Local Privilege Escalation](local-privilege-escalation.md)
 * [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
 * [Golden Ticket](golden-ticket.md)

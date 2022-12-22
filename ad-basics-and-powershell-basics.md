@@ -63,6 +63,9 @@ Can be configured via AppLoker or Windows Defender Application Mode in Enforceme
 
 Constrained language mode is only for Powershellv5.1, v7 - if attacker can run Powershellv2 no language mode enforcement is possible.
 
+**Disable Microsoft Defender**\
+****Set-MpPreference -DisableRealtimeMonitoring $true
+
 ****
 
 ### Execute .PS1 File / PowerView

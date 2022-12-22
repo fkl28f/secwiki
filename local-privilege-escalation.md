@@ -52,7 +52,7 @@ Get-ModifiableServiceFile -Verbose&#x20;
     * Put your build step as the first one, so it wil get executed no matter the errors of other steps
     *   E.g
 
-        <figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+        <figure><img src=".gitbook/assets/image (4) (1).png" alt=""><figcaption></figcaption></figure>
 
 
 
