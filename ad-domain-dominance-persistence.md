@@ -11,7 +11,6 @@
   * Server LSASS sends PAC validation request to DC netlogon service (NRPC)
   * It runs as servce, PAC validation is optional (disabled)
   * If a service runs as Syste, it performs server signature verification on the PAC (Computer account long-term key)
-  *
 
 **How Kerberos works**
 
@@ -25,15 +24,15 @@
 4. The TGS is returned with encryption of the target service/application service's NTLM hash
 5. The Applicatoin Server decrypts the TGS because it is with its own service NTLM hash encrypted, and then decides whether user can access
 
-## 🥇Golden Ticket Attack
+## 🥇🎫Golden Ticket Attack
 
 ### Description
 
+* Abuse is in Step 3 and 4, where a valid TGT is generated&#x20;
 * A golden ticket is signed and encrypted by the hash of krbtgt account which makes it a valid TGT ticket
 * Since user account validation is not done by DC until TGT is older than 20min, we use even deleted/revoked accounts
 * The krbtgt user hash could be used to impersonate any user with any privilege from even a non-domain machine
-* Password change (of krbtgt account)has no effect on this attack because previous hash will also be accpeted
-* Abuse is in Step 3 and 4, where a valid TGT is generated&#x20;
+* Password change (of krbtgt account)has no effect on this attack because previous hash will also be accpeted - you have to change the pw of krbtgt twice
 
 ### Requirements
 
@@ -53,8 +52,6 @@ Enter-Pssession  -session $sess\
 Invoke-Mimikatz -command '"lsadump:lsa /patch\
 
 
-
-
 **To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**\
 Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'
 
@@ -70,9 +67,41 @@ Invoke-Mimikatz -command '"sekurlsa:pth /user:svcadmin /domain:dom.local /ntlm:h
 
 <figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
 
-Use DCsync Attack / more silent in DC Logs\
-\
-\
+Use DCsync Attack / more silent in DC Logs
+
+## 🥈🎫Silver Ticket Attack
+
+### Description
+
+* Step 5 is abused (AP-REQ)
+* Trust anchor/key is the NTLM Hash of the Service Account of the application server. You can then access the service by impersonating any user, also high privs User
+* A Silver Ticket is a valid TGS
+* Encrypted and signed NTLM hash of the service account of the service running with that account
+* Service rareley chekcs PAC (Privileged Attriute Certificate) - if it is enabled (default disabled), Silver Ticket Attack will fail
+* Services will allow access only to the service themeselves
+* ❓ Resonable persistence period (default 30 days for computer accounts) - but machine can request ist earlier or later - disable the change of machine password is also possible
+* Interesting Service Accounts: CIFS, host, rpcss (can be used by WMI),wsman (powershell remoting) - all of them use the machine account as their service account
+
+### Requirement
+
+Machine account hash (e.g. after krbtgt&#x20;
+
+### Tools
+
+**Get domain controller account hash**\
+Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:cifs /rc4:hash /user:Administrator /ptt"'
+
+<figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+
+{% hint style="info" %}
+* Target is the host from where whe have the service account hash
+* Use cifs service for later access the filesystem of the Server
+{% endhint %}
+
+
+
+
+
 
 
 
