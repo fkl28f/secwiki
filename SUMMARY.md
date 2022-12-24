@@ -8,7 +8,7 @@
 * [AD - Domain Dominance / Persistence](ad-domain-dominance-persistence.md)
 * [Local Privilege Escalation](local-privilege-escalation.md)
 * [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
-* [Golden Ticket](golden-ticket.md)
+* [AD - Privilege Escalation](ad-privilege-escalation.md)
 
 ## 📱 Mobile Application Security
 

