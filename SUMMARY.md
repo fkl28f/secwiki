@@ -6,9 +6,9 @@
 * [AD - Domain Enumeration](ad-domain-enumeration.md)
 * [AD - Lateral Movement / Connections](ad-lateral-movement-connections.md)
 * [AD - Domain Dominance / Persistence](ad-domain-dominance-persistence.md)
+* [AD - Privilege Escalation](ad-privilege-escalation.md)
 * [Local Privilege Escalation](local-privilege-escalation.md)
 * [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
-* [AD - Privilege Escalation](ad-privilege-escalation.md)
 
 ## 📱 Mobile Application Security
 
