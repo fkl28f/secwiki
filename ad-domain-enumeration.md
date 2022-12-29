@@ -329,15 +329,18 @@ Get-NetForestCatalog\
 Get-NetForestCatalog -Forest forest.local\
 Get-ADForest | select -ExpandProperty GlobalCatalogs
 
-&#x20;**Map trusts of a forest**\
-Get-NetForestTrust \
-Get-NetForestTrust -Forest forest.local  \
-Get-NetForestDomain -Verbose | Get-NetDomainTrust\
-_Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'_
+&#x20;**Map trusts of a forest**
+
+```powershell
+Get-NetForestTrust 
+Get-NetForestTrust -Forest forest.local
+Get-NetForestDomain -Verbose | Get-NetDomainTrust
+Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
+```
 
 ## 🔫User Hunting
 
-**Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)** \
+**❗Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)** \
 ****Find-LocalAdminAccess -Verbose
 
 . ./Find-WMILocalAdminAccess.ps1\
@@ -346,8 +349,6 @@ Find-WMILocalAdminAccess - Computerfile computer.txt -verbose (all domain Comput
 
 . ./Find-PSRemotingLocalAdminAccess.ps1\
 Find-PSRemotingLocalAdminAccess
-
-
 
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for a list of computers (Get-NetComputer) and then use multi-threaded Invoke-CheckLocalAdminAccess on each of those machines. Since this function is extremely noisy and can cause a network spike, it is better to run it in chunks of machines (using the option -ComputerFile) rather than all machines at once. The function leaves a 4624 (logon event) or 4634 (logoff event) for each machine on the domain.
@@ -382,6 +383,11 @@ Invoke-UserHunter -Stealth
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of **only high value targets** (high traffic servers) - DC, File servers & distributed file servers, for being stealthy and generating lesser traffic and lists sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
 {% endhint %}
+
+**❗Query on the specified host for 100 seconds for any sessions for the user called "administrator"** \
+****Invoke-UserHunter -Computername hostname -poll 100 -username administrator -delay 5 -verbose
+
+****
 
 **Manually get Sessions of a Computer**\
 ****Get-NetSession -Computername hostname.local
