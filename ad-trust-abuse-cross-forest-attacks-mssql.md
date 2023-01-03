@@ -4,7 +4,7 @@
 
 ### Description
 
-<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (11).png" alt=""><figcaption></figcaption></figure>
 
 If the receiving DC on the other forest can decrypt the received TGT from Step 5, with the trust key, it assumes everything within the TGT is correct and response with a TGS.\
 The trustkey is the NTLM hash of the external domain saved on our DC.\

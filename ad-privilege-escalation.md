@@ -209,7 +209,7 @@ Invoke-Mimikatz -command '"kerberos::ptt C:\path\to\ticket"'
   This is huge as it allows to many interesting services when the delegation may be for a non-intrusive service!\
   ❗Eg. We have CIFS on appsrv.dom.local, we can access all the services, which use the same service account as CIFS, which is the machine account. This is also the account for WMI, PowershellRemoting!
 
-<figure><img src=".gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (3) (2).png" alt=""><figcaption></figcaption></figure>
 
 ### Requirement
 
@@ -317,5 +317,5 @@ A new file called kiwidns.log is creatd in C:\Windows\System32 and all the DNS r
 
 Modify the kdns.c with your own payload. This is a synchronous task, so if you start a reverse shell, the DNS service itself will stop in this host.
 
-<figure><img src=".gitbook/assets/image (8).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
 

