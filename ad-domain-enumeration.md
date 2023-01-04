@@ -301,7 +301,7 @@ Trust Properties
 * Forest trusts - b/w root domains of a forest. Can not be extended to a third forest (no implicit trust), can be one or two way and transitive or nontransitive
 {% endhint %}
 
-![](<.gitbook/assets/image (8).png>)
+![](<.gitbook/assets/image (8) (1).png>)
 
 
 
