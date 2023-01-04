@@ -317,5 +317,5 @@ A new file called kiwidns.log is creatd in C:\Windows\System32 and all the DNS r
 
 Modify the kdns.c with your own payload. This is a synchronous task, so if you start a reverse shell, the DNS service itself will stop in this host.
 
-<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 

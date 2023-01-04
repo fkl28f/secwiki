@@ -168,7 +168,58 @@ Use, NTLM, AES128, AES256 inn all requests\
 * Credential Guard can not be enabled on DC
 * It has been proved possible to replay service accounts credentials for lateral movement even if credential guard is enabled
 
-## Device Guard
+### Device Guard
+
+Three primary components
+
+* Confiurabel Code Integrity (CCI) - Let only trusted code run
+* Virtual Secure Mode Protected Code Integritiy - Enforce CCI with kernel mode (KMCI) and usermode (UMCI)
+* Platform and UEFI Secure Boot - Ensure boot binaries and firmware integrity
+* UMCI is something which interfecs with most lateral movment attacks
+* Bypasses exist like using whitelisted, signed applications such as csc.exe, MSBuild.exe, mshta.exe etc.
 
 
 
+## Protected User Group
+
+* Intorduced in Server 2012 R2
+* Needs all DC to be Server 2008 or later
+* Not recommended by MS to add DA and EA to this group, without testing the impact of lock out
+* No offline logon for the users
+* Having computer and service accounts in this group is useles - their credentials will always be present on the host machine - LSA secret
+* Users added to this group\
+  \- Cannot use CredSSP and WDigest => means no more cleartext credentials caching\
+  \- NTLM is not cached\
+  \- Kerberos does not use DES or RC4 keys. No caching of clear text creds or logn term keys
+* If the domain functional level is Server 2012 R2, the following points are also enforced per User\
+  \- No NTLM authentication\
+  \- No DES or RC4 key in Kerberos pre-auth\
+  \- No constrained or unconstrained delegation\
+  \- No renewal of TGT beyond initial four hour lifetime - Hardcoded and unconfigurable "Maximum lifetime for user ticket" and "Maximum lifetime for user ticket renewal"
+
+## Privileged Administrative Workstaions (PAWs)
+
+* A hardened workstation / Jumphost
+* Can provide protection from phishing attacks, OS Vulns, credential replay attacks
+* Seperate Workstation/VM for regular work and admin work / or a VM on a PAW for User tasks
+* Shared Jump-Hosts should not be used or only with high care! E.g credential caching of a lot of admins etc.
+
+## Active Directory Administrative Tier Model
+
+Tier 0 - Accounts, Groups, Computer accross the enterprise like dc, da, ea
+
+Tier 1 - Accounts, Groups, Computers which have access to resoruces having significatn amount of business value e.g. Application Server Admin, OS Administrators, Hypervisor Plattform
+
+Tier 2 - Administrative accounts user workstation/devices. Helpdesk, Support etc. which can impact a lot of users
+
+* Control Restrictions: What admins Control
+
+<figure><img src=".gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+
+* Logon  Restriction: Where admins can log-on to
+
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+
+Tier 1 => Tier 0 access should be really restricted and really role-based etc!
+
+## Enhanced Security Admin Environment (ESAE)
