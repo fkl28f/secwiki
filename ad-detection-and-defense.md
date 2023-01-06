@@ -77,7 +77,7 @@ Starting with Server 2008 they use AES, which is 0x12\
 * Use Managed Service Accounts (Automatic PW change periodically and delegated SPN Management)\
   [https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831782(v=ws.11)](https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/hh831782\(v=ws.11\))
 
-![](<.gitbook/assets/image (5).png>)
+![](<.gitbook/assets/image (5) (3).png>)
 
 ## **(Un-)Constrained Delegation**
 
@@ -139,7 +139,7 @@ Encryption method\
 **Bypass Golden Ticket**&#x20;
 
 Use, NTLM, AES128, AES256 inn all requests\
-![](<.gitbook/assets/image (1).png>)\
+![](<.gitbook/assets/image (1) (1).png>)\
 &#x20;\
 
 
@@ -214,11 +214,11 @@ Tier 2 - Administrative accounts user workstation/devices. Helpdesk, Support etc
 
 * Control Restrictions: What admins Control
 
-<figure><img src=".gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
 
 * Logon  Restriction: Where admins can log-on to
 
-<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
 
 Tier 1 => Tier 0 access should be really restricted and really role-based etc!
 

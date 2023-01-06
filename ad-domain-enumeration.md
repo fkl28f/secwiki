@@ -22,7 +22,7 @@ $ADclass::GetCurrentDomain()
 
 ## **👓PowerView Basic Domain Enumeration**
 
-**Get Current Domain**\
+**Get Current Domain & DC name**\
 Get-NetDomain\
 _Get-ADDomain_
 
@@ -33,6 +33,13 @@ _Get-ADDomain -identity dom.local_
 **Get domain SID for the current domain**\
 Get-DomainSID\
 _(Get-ADDomain).Domain.SID_
+
+**Get Domaincontroller**\
+****Get-DomainController\
+Get-DomainController -domain test.local
+
+**Get Overview of all Trusts**\
+Invoke-MapDomainTrust
 
 **Get the Domain Password Policy  / Kerberos Settings (MaxTicketAge, MaxServiceAge, MaxClockSkew, MaxRenewAge, TicketValidate Client)**\
 ****Get-DomainPolicy\
@@ -51,29 +58,25 @@ _Get-ADDomainController  //includes if LDAP/LDAPS Port Number_\
 _Get-ADDomainController -DomainName moneycorp.local -Discover_
 
 **Get information of users in the domain**\
-****Get-NetUser\
-Get-NetUser | select cn\
-Get-NetUser -Username username1\
+****Get-DomainUser\
+Get-DomainUser student1\
+Get-DomainUser -domain otherdom.local\
+Get-NetUse username1\
 _Get-ADUser -Filter \* -Properties \*_\
 _Get-ADUser -Filter \* -Properties \* | select Name_\
-_Get-ADuser -Identity username1 -Properties \*_\
-
-
-**Get list of all users**\
-Get-NetUser | select samaccountname\
-Get-NetUser -Username student1\
-_Get-ADUser -Filter \* -Properties \*_ \
-_Get-ADUser -Identity student1 -Properties \*_
+_Get-ADuser -Identity username1 -Properties \*_
 
 **Get list of usernames, last logon and password last set** \
-Get-NetUser | select samaccountname, lastlogon, pwdlastset Get-NetUser | select samaccountname, lastlogon, pwdlastset | Sort-Object -Property lastlogon
+Get-DomainUser | select samaccountname, lastlogon, pwdlastset, logoncount | Sort-Object -Property lastlogon\
+Get-NetUser | select samaccountname, lastlogon, pwdlastset, logoncount | Sort-Object -Property lastlogon
 
 **Get list of usernames and their groups**\
+Get-DomainUser | select samaccountname, memberof\
 Get-NetUser | select samaccountname, memberof
 
 **Get list of all properties for users in the current domain**\
-Get-Userproperty\
-Get-Userproperty -Properties pwdlastset
+~~Get-Userproperty~~\
+~~Get-Userproperty -Properties pwdlastset~~
 
 _Get-ADUser -Filter \* -Properties \* | select -First 1 | Get-Member -MemberType \*Property | select Name_\
 _Get-ADUser -Filter \* -Properties \* | select name,@{expression={\[datetime]::fromFileTime($\_.pwdlastset)\}}_
@@ -85,12 +88,12 @@ User may have some badpwdcount because he/she entered the wrong pw.
 {% endhint %}
 
 **❗ Get descripton field from the user / Search in user description** \
-Find-UserField -SearchField Description -SearchTerm "built" \
-Get-netuser | Select-Object samaccountname,description\
-\
+Get-DomainUser -LDAPFilter "Description=\*built\*" | Select name, description\
 _Get-ADUser -Filter 'Description -like "\*built"' -Properties Description | select name,description_
 
-&#x20;**List all groups of the domain** \
+**List all groups of the domain** \
+Get-DomainGroup | select Name\
+Get-DomainGroup -domain target.dom\
 Get-NetGroup\
 Get-NetGroup -FullData \
 Get-NetGroup -GroupName _admin_ \
@@ -101,17 +104,19 @@ net group /domain
 _Get-ADGroup -Filter \* | select Name_\
 _Get-ADGroup -Filter \* -Properties \*_
 
-**Get all the members of the group** \
-Get-NetGroupMember -Groupname "Domain Admins" -Recurse\
-Get-NetGroupMember -Groupname "Domain Admins" -Recurse | select MemberName\
-Get-ADGroupMember -Identity "Domain Admins" -Recursive
+**Get all the members of the group**\
+Get-DomainGroupMember -identity "Domain Admins" -Recurse\
+Get-NetGroupMember "Domain Admins" -Recurse\
+Get-NetGroupMember "Domain Admins" -Recurse | select MemberName\
+_Get-ADGroupMember -Identity "Domain Admins" -Recursive_
 
 {% hint style="info" %}
 Renaming Domain Administrator: Does not matter because the MemberSID is \[DomainID]-\[UserID] - For the Administrator Account this is always UserID 500. It can not be changed.
 {% endhint %}
 
 **Get all the domain groups containing the word "admin" in group name**\
-Get-NetGroup -GroupName \*_admin\*_\
+Get-DomainGroup \*admin\*\
+Get-NetGroup  \*_admin\*_\
 _Get-ADGroup -Filter 'Name -like "admin"' | select Name_
 
 {% hint style="info" %}
@@ -120,21 +125,21 @@ Get-NetGroup - Groupname \*admin\* -Domain rootdom.local
 {% endhint %}
 
 **Get the group membership of a user** \
+Get-DomainGroup -Username "username"\
 Get-NetGroup -Username "username"\
 _Get-ADPrincipalGroupMembership -Identity student1_
 
 **List all the local groups on a machine (needs admin privs on non-dc machines)** \
-Get-NetlocalGroup -Computername \[hostname] -ListGroups\
-Get-NetlocalGroup -Computername DCHostnameHere -ListGroups
+Get-NetlocalGroup -Computername \[hostname]
 
-**Get Member of all the local groups on a machine (needs admin privs on non-dc machines)** \
-Get-NetlocalGroup -Computername \[hostname] -Recurse
+**Get Member of all the local groups "Administrators" on a machine (needs admin privs on non-dc machines)** \
+Get-NetLocalGroupMember -Computername \[hostname] -GroupName Administrators
 
 **Get actively logged users on a computer (needs local admin privs)** \
-Get-NetLoggedon -Computername \[hostname]
+Get-NetLoggedOn -Computername \[hostname]
 
 **Get locally logged users on a computer (needs remote registry rights on the target - started by default on server os)** \
-Get-LoggedonLocal -Computername \[hostname]
+Get-LoggedOnLocal -Computername \[hostname]
 
 **Get the last logged users on a computer (needs admin rights and remote registary on the target)** \
 ****Get-LastLoggedOn -Computername \[hostname]
@@ -142,9 +147,15 @@ Get-LoggedonLocal -Computername \[hostname]
 ## **💻PowerView Computer**
 
 **Get computer information** \
-Get-NetComputer \
+Get-DomainComputer\
+Get-DomainComputer -OperatingSystem "\*Server 2016\*"\
+Get-DomainComputer | select name\
+Get-DomainComputer | select operatingsystem\
+Get-DomainComputer | select operatingsystem\
+\
+Get-NetComputer -ping\
 Get-NetComputer -FullData \
-Get-NetComputer -OperatinSystem "\*Server 2016\*"\
+Get-NetComputer -OperatingSystem "\*Server 2016\*"\
 Get-NetComputer -FullData | select opertingsystem\
 Get-NetComputer -Ping\
 \
@@ -154,13 +165,8 @@ _Get-ADComputer -Filter 'OperatingSystem -like "Server2016"' -Properties Operati
 _Get-ADComputer -Filter \* -Properties DNSHostName | %{Test-Connection -Count 1 -ComputerName $\_.DNSHostName}_\
 __
 
-**Get computers with operating system** \
-Get-NetComputer -OperatingSystem "_Server 2016_"
-
 **Get list of all computer names and operating systems** \
 Get-NetComputer -fulldata | select samaccountname, operatingsystem, operatingsystemversion
-
-****
 
 ## 📃 PowerView shares
 
@@ -184,17 +190,22 @@ E.g. Domain Controller, Fileserver Role installed, Exchange, Sharepoint
 ## 📕PowerView GPO
 
 **Get list of GPO's in the current domain**\
+Get-DomainGPO\
+Get-DomainGPO | select displayname\
+Get-DomainGPO -domain otherdom.local\
 Get-NetGPO\
 Get-NetGPO | select displayname\
 &#x20;  Default Domain Policy and Default Domain Controllers Policy are default ones\
 
 
 **What GPO are applied to a certain machine**\
+Get-DomainGPO -computeridentity hostname\
 Get-NetGPO -Computername \[hostname] &#x20;
 
 gpresult /R /V
 
 **Get GPO's which uses restricteds groups or groups.xml for interesting users**\
+Get-DomainGPOLocalGroup\
 Get-NetGPOGroup
 
 {% hint style="info" %}
@@ -202,21 +213,28 @@ Restricted groups are those groups that are pushed through the group policy and 
 {% endhint %}
 
 **Get users which are in a local group of a machine using GPO**\
+Get-DomainGPOComputerLocalGroupMapping -computeridentity hostname\
 Find-GPOComputerAdmin -Computername \[hostname]
 
 **Get machines where the given user is member of a specific group using GPO**\
+****Get-DomainGPOUserLocalGroupMapping -identity user1 -verbose\
 ****Find-GPOLocation -Username \[username] -Verbose
 
 **Get OU's in a domain**\
+Get-DomainOU\
 Get-NetOU -FullData\
 _Get-ADOrganizationalUnit -Filter \* -Properties \*_
 
 **Get machines that are part of an OU**\
-Get-NetOU StudentMachines | %{Get-NetComputer -ADSPath $\_}
-
-**Get GPO applied on an OU (take ID gplink from Get-NetGPO -Fulldata)** \
-Get-NetGPO -GPOname '{ID...}'\
+Get-DomainOU ouname \
+Get-DomainOU ouname | %{Get-DomainComputer -SearchBase $\_.distinguishedname -Properties Name}\
+\
+**Get GPO applied on an OU (take ID gplink get-netou)** \
+Get-DomainGPO -identity '{id...}'\
 _Get-GPO -Guid ID_
+
+**Enumerate permissions for GPOs where users with RIDs of > 1000 have some kind of modification/control rights**\
+****Get-DomainObjectAcl -LDAPFilter '(objectCategory=groupPolicyContainer)' | ? { ($\_.SecurityIdentifier -match '^S-1-5-.\*-\[1-9]\d{3,}$') -and ($\_.ActiveDirectoryRights -match 'WriteProperty|GenericAll|GenericWrite|WriteDacl|WriteOwner')} | select ObjectDN, ActiveDirectoryRights, SecurityIdentifier | fl
 
 ## 🎰PowerView ACL
 
@@ -243,13 +261,16 @@ _Get-GPO -Guid ID_
 
 
 
-![](<.gitbook/assets/image (1) (1).png>)
+![](<.gitbook/assets/image (1) (1) (1).png>)
 
 **Get the ACL's associated with the specified object**\
+Get-DomainObjectACL -SamAccountName \[username] -ResolveGUIDS\
 Get-ObjectACL -SamAccountName \[username] -ResolveGUIDS\
 &#x20;  On the Object specified with ObjectDN, the User/Gorup specified in IdentityReference has the rights ActiveDirectoryRights.
 
 **Get the ACL's associated with the specified prefix to be used for search**\
+Get-DomainObjectAcl -SearchBase "LDAP://CN=Domain Admins,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local" -ResolveGUIDs -Verbose\
+\
 Get-ObjectACL -ADSprefix 'CN=Administrator,CN=Users' -Verbose \
 Get-ObjectACL -ADSpath "LDAP://CN=Domain Admins,CN=Users,DC=test,DC=local" - ResolveGUID -Verbose\
 \
@@ -259,6 +280,11 @@ _(Get-Acl 'AD:\CN=Administrator,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local').A
 ****Get-PathAcl -Path "\\\ds-hostname\sysvol"
 
 **Search for interesting ACL's (Write, modify etc.)**\
+Find-InterestingDomainAcl -ResolveGUIDs\
+Find-InterestingDomainAcl -RightsFilter All\
+Find-InterestingDomainAcl -RightsFilter ResetPassword\
+Find-InterestingDomainAcl -RightsFilter WriteMember
+
 Invoke-ACLScanner -ResolveGUIDs \
 Invoke-ACLScanner -ResolveGUIDs | select IdentityReference, ObjectDN, ActiveDirectoryRights | fl
 
