@@ -286,10 +286,12 @@ Find-InterestingDomainAcl -RightsFilter ResetPassword\
 Find-InterestingDomainAcl -RightsFilter WriteMember
 
 Invoke-ACLScanner -ResolveGUIDs \
-Invoke-ACLScanner -ResolveGUIDs | select IdentityReference, ObjectDN, ActiveDirectoryRights | fl
+Invoke-ACLScanner -ResolveGUIDs | select IdentityReferenceName, ObjectDN, ActiveDirectoryRights | fl
 
-**Search of interesting ACL's for the current user** \
-Invoke-ACLScanner | Where-Object {$\_.IdentityReference –eq \[System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
+**Search of interesting ACL's for the current user (or where the current is memberOf**\
+Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "yout-username"}\
+Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "your-member-of-group-name"}\
+Invoke-ACLScanner | Where-Object {$\_.IdentityReferenceName –eq \[System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
 
 ## 🚥PowerView Domain trust
 
@@ -358,7 +360,7 @@ Get-ADForest | select -ExpandProperty GlobalCatalogs
 &#x20;**Map trusts of a forest**
 
 ```powershell
-Get-NetForestTrust 
+wGet-NetForestTrust 
 Get-NetForestTrust -Forest forest.local
 Get-NetForestDomain -Verbose | Get-NetDomainTrust
 Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
