@@ -24,10 +24,8 @@ $ADclass::GetCurrentDomain()
 
 **Get Current Domain & DC name**\
 Get-NetDomain\
-_Get-ADDomain_
-
-**Get Object of another domain**\
 Get-NetDomain -domain dom.local\
+_Get-ADDomain_\
 _Get-ADDomain -identity dom.local_
 
 **Get domain SID for the current domain**\
@@ -336,6 +334,8 @@ Trust Properties
 
 
 **Get a list of all the domain trusts for the current domain** \
+Get-DomainTrust | ft\
+Get-DomainTrust -domain dom.local\
 Get-NetDomainTrust\
 Get-NetDomainTrust -Domain domain.local\
 _Get-ADTrust_ \
@@ -343,30 +343,37 @@ _Get-ADTrust -Filter \*_\
 _Get-ADTrust -Identity  domain.local_
 
 **Get details about the forest** \
+Get-Forest\
+Get-Forest -forest forestname.local\
 Get-NetForest\
 Get-NetForest -Forest forest.local\
 _Get-ADForest_\
 _Get-ADForest -Identity forest.local_
 
-**❗Ge t all domains in the forest** \
+**❗Ge t all domains in the current/other forest** \
+Get-ForestDomain -verbose\
+Get-ForestDomain -Forest forest.local\
 Get-NetForestDomain \
 Get-NetforestDomain -Forest forestname.local\
 (_Get-ADForest).Domains_\
 _Get-ADForest -Identity eurocorp.local_
 
 **Get global catalogs for the current forest**\
+Get-ForestGlobalCatalog\
+Get-ForestGlobalCatalog -forest forest.local\
 Get-NetForestCatalog\
 Get-NetForestCatalog -Forest forest.local\
 Get-ADForest | select -ExpandProperty GlobalCatalogs
 
 &#x20;**Map trusts of a forest**
 
-```powershell
-wGet-NetForestTrust 
+<pre class="language-powershell"><code class="lang-powershell">Get-ForestTrust
+<strong>Get-ForestTrust -Forest forest.local
+</strong>Get-NetForestTrust 
 Get-NetForestTrust -Forest forest.local
 Get-NetForestDomain -Verbose | Get-NetDomainTrust
 Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
-```
+</code></pre>
 
 ## 🔫User Hunting
 
