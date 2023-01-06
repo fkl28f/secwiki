@@ -288,9 +288,11 @@ Find-InterestingDomainAcl -RightsFilter WriteMember
 Invoke-ACLScanner -ResolveGUIDs \
 Invoke-ACLScanner -ResolveGUIDs | select IdentityReferenceName, ObjectDN, ActiveDirectoryRights | fl
 
-**Search of interesting ACL's for the current user (or where the current is memberOf**\
+**❗Search of interesting ACL's for the current user (or where the current is memberOf**\
 Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "yout-username"}\
 Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "your-member-of-group-name"}\
+Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "RDPUsers"} | select Object DN,ActiveDirectoryRights,IdentityReferenceName\
+\
 Invoke-ACLScanner | Where-Object {$\_.IdentityReferenceName –eq \[System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
 
 ## 🚥PowerView Domain trust
