@@ -10,7 +10,7 @@
 * [AD - Privilege Escalation](ad-privilege-escalation.md)
 * [AD - Trust Abuse - Cross-Forest Attacks / MSSQL](ad-trust-abuse-cross-forest-attacks-mssql.md)
 * [AD - Detection and Defense](ad-detection-and-defense.md)
-* [Local Privilege Escalation](local-privilege-escalation.md)
+* [Local Privilege Escalation / AV Bypass](local-privilege-escalation-av-bypass.md)
 * [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
 
 ## 📱 Mobile Application Security

@@ -22,62 +22,97 @@ $ADclass::GetCurrentDomain()
 
 ## **👓PowerView Basic Domain Enumeration**
 
-**Get Current Domain & DC name**\
-Get-NetDomain\
-Get-NetDomain -domain dom.local\
-_Get-ADDomain_\
-_Get-ADDomain -identity dom.local_
+**Get Current Domain & DC name**
 
-**Get domain SID for the current domain**\
-Get-DomainSID\
-_(Get-ADDomain).Domain.SID_
+```powershell
+Get-NetDomain
+Get-NetDomain -domain dom.local
+Get-ADDomain
+Get-ADDomain -identity dom.local
+```
 
-**Get Domaincontroller**\
-****Get-DomainController\
+**Get domain SID for the current domain**
+
+```powershell
+Get-DomainSID
+(Get-ADDomain).Domain.SID
+```
+
+**Get Domaincontroller**
+
+```powershell
+Get-DomainController
 Get-DomainController -domain test.local
+```
 
-**Get Overview of all Trusts**\
+**Get Overview of all Trusts**
+
+```powershell
 Invoke-MapDomainTrust
+```
 
-**Get the Domain Password Policy  / Kerberos Settings (MaxTicketAge, MaxServiceAge, MaxClockSkew, MaxRenewAge, TicketValidate Client)**\
-****Get-DomainPolicy\
-(Get-DomainPolicy)."System Access"   \
-(Get-DomainPolicy)."Kerberos Policy"\
-\
+**Get the Domain Password Policy  / Kerberos Settings (MaxTicketAge, MaxServiceAge, MaxClockSkew, MaxRenewAge, TicketValidate Client)**
+
+```powershell
+Get-DomainPolicy
+(Get-DomainPolicy)."System Access"   
+(Get-DomainPolicy)."Kerberos Policy"
+
 net accounts
+```
 
 ## 👪 PowerView users groups and computers
 
-**Get Information of domain controller DC**\
-Get-NetDomainController\
-Get-NetDomainController | select-object Name\
-Get-NetDomainController -Domain mydom.local\
-_Get-ADDomainController  //includes if LDAP/LDAPS Port Number_\
-_Get-ADDomainController -DomainName moneycorp.local -Discover_
+**Get Information of domain controller DC**
 
-**Get information of users in the domain**\
-****Get-DomainUser\
-Get-DomainUser student1\
-Get-DomainUser -domain otherdom.local\
-Get-NetUse username1\
-_Get-ADUser -Filter \* -Properties \*_\
-_Get-ADUser -Filter \* -Properties \* | select Name_\
-_Get-ADuser -Identity username1 -Properties \*_
+```powershell
+Get-NetDomainController
+Get-NetDomainController | select-object Name
+Get-NetDomainController -Domain mydom.local
+Get-ADDomainController  //includes if LDAP/LDAPS Port Number
+Get-ADDomainController -DomainName moneycorp.local -Discover
+```
 
-**Get list of usernames, last logon and password last set** \
-Get-DomainUser | select samaccountname, lastlogon, pwdlastset, logoncount | Sort-Object -Property lastlogon\
+**Get information of users in the domain**
+
+```powershell
+Get-DomainUser
+Get-DomainUser student1
+Get-DomainUser -domain otherdom.local
+Get-NetUse username1
+Get-ADUser -Filter * -Properties *
+Get-ADUser -Filter * -Properties * | select Name
+Get-ADuser -Identity username1 -Properties *Get-domain 
+```
+
+**Get list of usernames, last logon and password last set**&#x20;
+
+{% code overflow="wrap" %}
+```powershell
+Get-DomainUser | select samaccountname, lastlogon, pwdlastset, logoncount | Sort-Object -Property lastlogon
 Get-NetUser | select samaccountname, lastlogon, pwdlastset, logoncount | Sort-Object -Property lastlogon
 
-**Get list of usernames and their groups**\
-Get-DomainUser | select samaccountname, memberof\
-Get-NetUser | select samaccountname, memberof
+```
+{% endcode %}
 
-**Get list of all properties for users in the current domain**\
+**Get list of usernames and their groups**
+
+```powershell
+Get-DomainUser | select samaccountname, memberof
+Get-NetUser | select samaccountname, memberof 
+```
+
+**Get list of all properties for users in the current domain**
+
+{% code overflow="wrap" %}
+```powershell
+Get-ADUser -Filter * -Properties * | select -First 1 | Get-Member -MemberType *Property | select Name
+Get-ADUser -Filter * -Properties * | select name,@{expression={[datetime]::fromFileTime($_.pwdlastset)}}
+```
+{% endcode %}
+
 ~~Get-Userproperty~~\
 ~~Get-Userproperty -Properties pwdlastset~~
-
-_Get-ADUser -Filter \* -Properties \* | select -First 1 | Get-Member -MemberType \*Property | select Name_\
-_Get-ADUser -Filter \* -Properties \* | select name,@{expression={\[datetime]::fromFileTime($\_.pwdlastset)\}}_
 
 {% hint style="info" %}
 Properties like badpwdcount, pwdlastset, logoncount help in identifying decoy objects / honeypots.
@@ -85,98 +120,152 @@ Properties like badpwdcount, pwdlastset, logoncount help in identifying decoy ob
 User may have some badpwdcount because he/she entered the wrong pw.
 {% endhint %}
 
-**❗ Get descripton field from the user / Search in user description** \
-Get-DomainUser -LDAPFilter "Description=\*built\*" | Select name, description\
-_Get-ADUser -Filter 'Description -like "\*built"' -Properties Description | select name,description_
+**❗ Get descripton field from the user / Search in user description**&#x20;
 
-**List all groups of the domain** \
-Get-DomainGroup | select Name\
-Get-DomainGroup -domain target.dom\
-Get-NetGroup\
-Get-NetGroup -FullData \
-Get-NetGroup -GroupName _admin_ \
+```powershell
+Get-DomainUser -LDAPFilter "Description=*built*" | Select name, description
+
+Get-ADUser -Filter 'Description -like "*built"' -Properties Description | select name,description
+```
+
+****\
+**List all groups of the domain**&#x20;
+
+<pre class="language-powershell"><code class="lang-powershell">Get-DomainGroup | select Name
+Get-DomainGroup -domain target.dom
+Get-NetGroup
+Get-NetGroup -FullData 
+Get-NetGroup -GroupName admin 
 Get-NetGroup -Domain domainname
-
 net group /domain
+<strong>
+</strong><strong>Get-ADGroup -Filter * | select Name
+</strong>Get-ADGroup -Filter * -Properties *
+</code></pre>
 
-_Get-ADGroup -Filter \* | select Name_\
-_Get-ADGroup -Filter \* -Properties \*_
+**Get all the members of the group**
 
-**Get all the members of the group**\
-Get-DomainGroupMember -identity "Domain Admins" -Recurse\
-Get-NetGroupMember "Domain Admins" -Recurse\
-Get-NetGroupMember "Domain Admins" -Recurse | select MemberName\
-_Get-ADGroupMember -Identity "Domain Admins" -Recursive_
+<pre class="language-powershell"><code class="lang-powershell">Get-DomainGroupMember -identity "Domain Admins" -Recurse
+Get-NetGroupMember "Domain Admins" -Recurse
+Get-NetGroupMember "Domain Admins" -Recurse | select MemberName
+<strong>
+</strong><strong>Get-ADGroupMember -Identity "Domain Admins" -Recursive
+</strong></code></pre>
 
 {% hint style="info" %}
 Renaming Domain Administrator: Does not matter because the MemberSID is \[DomainID]-\[UserID] - For the Administrator Account this is always UserID 500. It can not be changed.
 {% endhint %}
 
-**Get all the domain groups containing the word "admin" in group name**\
-Get-DomainGroup \*admin\*\
-Get-NetGroup  \*_admin\*_\
-_Get-ADGroup -Filter 'Name -like "admin"' | select Name_
+**Get all the domain groups containing the word "admin" in group name**
+
+<pre class="language-powershell"><code class="lang-powershell">Get-DomainGroup *admin*
+Get-NetGroup  *admin*
+<strong>
+</strong><strong>Get-ADGroup -Filter 'Name -like "admin"' | select Name
+</strong></code></pre>
 
 {% hint style="info" %}
 Enterprise Admin, Schema Admins, Enterprise Key Admins are missing from the result. They are only available on the Forest Root e.g. in the root domain.\
 Get-NetGroup - Groupname \*admin\* -Domain rootdom.local
 {% endhint %}
 
-**Get the group membership of a user** \
-Get-DomainGroup -Username "username"\
-Get-NetGroup -Username "username"\
-_Get-ADPrincipalGroupMembership -Identity student1_
+**Get the group membership of a user**&#x20;
 
-**List all the local groups on a machine (needs admin privs on non-dc machines)** \
-Get-NetlocalGroup -Computername \[hostname]
+```powershell
+Get-DomainGroup -Username "username"
+Get-NetGroup -Username "username"
 
-**Get Member of all the local groups "Administrators" on a machine (needs admin privs on non-dc machines)** \
-Get-NetLocalGroupMember -Computername \[hostname] -GroupName Administrators
+Get-ADPrincipalGroupMembership -Identity student1 
+```
 
-**Get actively logged users on a computer (needs local admin privs)** \
-Get-NetLoggedOn -Computername \[hostname]
+**List all the local groups on a machine (needs admin privs on non-dc machines)**
 
-**Get locally logged users on a computer (needs remote registry rights on the target - started by default on server os)** \
-Get-LoggedOnLocal -Computername \[hostname]
+```powershell
+Get-NetlocalGroup -Computername [hostname]
+```
 
-**Get the last logged users on a computer (needs admin rights and remote registary on the target)** \
-****Get-LastLoggedOn -Computername \[hostname]
+**Get Member of all the local groups "Administrators" on a machine (needs admin privs on non-dc machines)**&#x20;
+
+```powershell
+Get-NetLocalGroupMember -Computername [hostname] -GroupName Administrators 
+```
+
+**Get actively logged users on a computer (needs local admin privs)**&#x20;
+
+```powershell
+Get-NetLoggedOn -Computername [hostname]
+```
+
+**Get locally logged users on a computer (needs remote registry rights on the target - started by default on server os)**&#x20;
+
+```powershell
+Get-dGet-LoggedOnLocal -Computername [hostname] 
+```
+
+**Get the last logged users on a computer (needs admin rights and remote registary on the target)**&#x20;
+
+```powershell
+Get-LastLoggedOn -Computername [hostname]
+```
+
+
 
 ## **💻PowerView Computer**
 
-**Get computer information** \
-Get-DomainComputer\
-Get-DomainComputer -OperatingSystem "\*Server 2016\*"\
-Get-DomainComputer | select name\
-Get-DomainComputer | select operatingsystem\
-Get-DomainComputer | select operatingsystem\
-\
-Get-NetComputer -ping\
-Get-NetComputer -FullData \
-Get-NetComputer -OperatingSystem "\*Server 2016\*"\
-Get-NetComputer -FullData | select opertingsystem\
-Get-NetComputer -Ping\
-\
-_Get-ADComputer -Filter \* -Properties \*_\
-_Get-ADComputer -Filter \* | select Name_\
-_Get-ADComputer -Filter 'OperatingSystem -like "Server2016"' -Properties OperatingSystem | select Name, OperatingSystem_\
-_Get-ADComputer -Filter \* -Properties DNSHostName | %{Test-Connection -Count 1 -ComputerName $\_.DNSHostName}_\
-__
+**Get computer information**&#x20;
 
-**Get list of all computer names and operating systems** \
-Get-NetComputer -fulldata | select samaccountname, operatingsystem, operatingsystemversion
+{% code overflow="wrap" %}
+```powershell
+Get-DomainComputer
+Get-DomainComputer -OperatingSystem "*Server 2016*"
+Get-DomainComputer | select name
+Get-DomainComputer | select operatingsystem
+Get-DomainComputer | select operatingsystem
 
-## 📃 PowerView shares
+Get-NetComputer -ping
+Get-NetComputer -FullData 
+Get-NetComputer -OperatingSystem "*Server 2016*"
+Get-NetComputer -FullData | select opertingsystem
+Get-NetComputer -Ping
 
-**Find shared on hosts in the current domain** (readable or writeable ones)\
-Invoke-ShareFinder -Verbose \
-Invoke-ShareFinder -ExcludeStandard -ExcludePrint -ExcludeIPC
+//
+Get-ADComputer -Filter * -Properties *
+Get-ADComputer -Filter * | select Name
+Get-ADComputer -Filter 'OperatingSystem -like "Server2016"' -Properties OperatingSystem | select Name, OperatingSystem
+Get-ADComputer -Filter * -Properties DNSHostName | %{Test-Connection -Count 1 -ComputerName $_.DNSHostName}
+```
+{% endcode %}
 
-**Find sensitive files (PWs, Keys etc.) on computers in the domain** \
-Invoke-FileFinder -Verbose
+**Get list of all computer names and operating systems**&#x20;
 
-**Get all fileservers of the domain** (\
-Get-NetFileServer -Verbose
+{% code overflow="wrap" %}
+```powershell
+Get-NetComputer -fulldata | select samaccountname, operatingsystem, operatingsystemversion 
+```
+{% endcode %}
+
+****\
+****📃 PowerView shares
+-----------------------
+
+**Find shared on hosts in the current domain** (readable or writeable ones)
+
+```powershell
+Invoke-ShareFinder -Verbose 
+Invoke-ShareFinder -ExcludeStandard -ExcludePrint -ExcludeIPC 
+```
+
+**Find sensitive files (PWs, Keys etc.) on computers in the domain**&#x20;
+
+```powershell
+Invoke-FileFinder -Verbose 
+```
+
+**Get all fileservers of the domain**
+
+```powershell
+Get-NetFileServer -Verbose 
+```
 
 {% hint style="info" %}
 Searches for high value targets (machines/servers where lot of users authenticate to)\
@@ -187,52 +276,89 @@ E.g. Domain Controller, Fileserver Role installed, Exchange, Sharepoint
 
 ## 📕PowerView GPO
 
-**Get list of GPO's in the current domain**\
-Get-DomainGPO\
-Get-DomainGPO | select displayname\
-Get-DomainGPO -domain otherdom.local\
-Get-NetGPO\
-Get-NetGPO | select displayname\
-&#x20;  Default Domain Policy and Default Domain Controllers Policy are default ones\
+**Get list of GPO's in the current domain**
 
+```powershell
+Get-DomainGPO
+Get-DomainGPO | select displayname
+Get-DomainGPO -domain otherdom.local
+Get-NetGPO
+Get-NetGPO | select displayname
+   Default Domain Policy and Default Domain Controllers Policy are default ones 
+```
 
-**What GPO are applied to a certain machine**\
-Get-DomainGPO -computeridentity hostname\
-Get-NetGPO -Computername \[hostname] &#x20;
+**What GPO are applied to a certain machine**
+
+```powershell
+Get-DomainGPO -computeridentity hostname
+Get-NetGPO -Computername [hostname]  
 
 gpresult /R /V
+```
 
-**Get GPO's which uses restricteds groups or groups.xml for interesting users**\
-Get-DomainGPOLocalGroup\
+**Get GPO's which uses restricteds groups or groups.xml for interesting users**
+
+```powershell
+Get-DomainGPOLocalGroup
 Get-NetGPOGroup
+```
 
 {% hint style="info" %}
 Restricted groups are those groups that are pushed through the group policy and are part of the local groups on your machine.
 {% endhint %}
 
-**Get users which are in a local group of a machine using GPO**\
-Get-DomainGPOComputerLocalGroupMapping -computeridentity hostname\
-Find-GPOComputerAdmin -Computername \[hostname]
+**Get users which are in a local group of a machine using GPO**
 
-**Get machines where the given user is member of a specific group using GPO**\
-****Get-DomainGPOUserLocalGroupMapping -identity user1 -verbose\
-****Find-GPOLocation -Username \[username] -Verbose
+```powershell
+Get-DomainGPOComputerLocalGroupMapping -computeridentity hostname
+Find-GPOComputerAdmin -Computername [hostname]
+```
 
-**Get OU's in a domain**\
-Get-DomainOU\
-Get-NetOU -FullData\
-_Get-ADOrganizationalUnit -Filter \* -Properties \*_
+**Get machines where the given user is member of a specific group using GPO**
 
-**Get machines that are part of an OU**\
-Get-DomainOU ouname \
-Get-DomainOU ouname | %{Get-DomainComputer -SearchBase $\_.distinguishedname -Properties Name}\
+```powershell
+Get-DomainGPOUserLocalGroupMapping -identity user1 -verbose
+Find-GPOLocation -Username [username] -Verbose
+```
+
+**Get OU's in a domain**
+
+```powershell
+Get-DomainOU
+Get-NetOU -FullData
+
+Get-ADOrganizationalUnit -Filter * -Properties *
+```
+
+**Get machines that are part of an OU**
+
+{% code overflow="wrap" %}
+```powershell
+Get-DomainOU ouname 
+Get-DomainOU ouname | %{Get-DomainComputer -SearchBase $_.distinguishedname -Properties Name}
+```
+{% endcode %}
+
 \
-**Get GPO applied on an OU (take ID gplink get-netou)** \
-Get-DomainGPO -identity '{id...}'\
-_Get-GPO -Guid ID_
+**Get GPO applied on an OU (take ID gplink get-netou)**&#x20;
 
-**Enumerate permissions for GPOs where users with RIDs of > 1000 have some kind of modification/control rights**\
-****Get-DomainObjectAcl -LDAPFilter '(objectCategory=groupPolicyContainer)' | ? { ($\_.SecurityIdentifier -match '^S-1-5-.\*-\[1-9]\d{3,}$') -and ($\_.ActiveDirectoryRights -match 'WriteProperty|GenericAll|GenericWrite|WriteDacl|WriteOwner')} | select ObjectDN, ActiveDirectoryRights, SecurityIdentifier | fl
+```powershell
+Get-DomainGPO -identity '{id...}'
+
+Get-GPO -Guid ID 
+```
+
+
+
+**Enumerate permissions for GPOs where users with RIDs of > 1000 have some kind of modification/control rights**
+
+{% code overflow="wrap" %}
+```powershell
+Get-DomainObjectAcl -LDAPFilter '(objectCategory=groupPolicyContainer)' | ? { ($_.SecurityIdentifier -match '^S-1-5-.*-[1-9]\d{3,}$') -and ($_.ActiveDirectoryRights -match 'WriteProperty|GenericAll|GenericWrite|WriteDacl|WriteOwner')} | select ObjectDN, ActiveDirectoryRights, SecurityIdentifier | fl
+```
+{% endcode %}
+
+
 
 ## 🎰PowerView ACL
 
@@ -261,37 +387,63 @@ _Get-GPO -Guid ID_
 
 ![](<.gitbook/assets/image (1) (1) (1).png>)
 
-**Get the ACL's associated with the specified object**\
-Get-DomainObjectACL -SamAccountName \[username] -ResolveGUIDS\
-Get-ObjectACL -SamAccountName \[username] -ResolveGUIDS\
-&#x20;  On the Object specified with ObjectDN, the User/Gorup specified in IdentityReference has the rights ActiveDirectoryRights.
+**Get the ACL's associated with the specified object**
 
-**Get the ACL's associated with the specified prefix to be used for search**\
-Get-DomainObjectAcl -SearchBase "LDAP://CN=Domain Admins,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local" -ResolveGUIDs -Verbose\
-\
-Get-ObjectACL -ADSprefix 'CN=Administrator,CN=Users' -Verbose \
-Get-ObjectACL -ADSpath "LDAP://CN=Domain Admins,CN=Users,DC=test,DC=local" - ResolveGUID -Verbose\
-\
-_(Get-Acl 'AD:\CN=Administrator,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local').Access  //no GUIDs will be provided_
+{% code overflow="wrap" %}
+```powershell
+Get-DomainObjectACL -SamAccountName [username] -ResolveGUIDS
+Get-ObjectACL -SamAccountName [username] -ResolveGUIDS
+   On the Object specified with ObjectDN, the User/Gorup specified in IdentityReference has the rights ActiveDirectoryRights.
+```
+{% endcode %}
 
-**Get the ACL's associated with the specified path**\
-****Get-PathAcl -Path "\\\ds-hostname\sysvol"
 
-**Search for interesting ACL's (Write, modify etc.)**\
-Find-InterestingDomainAcl -ResolveGUIDs\
-Find-InterestingDomainAcl -RightsFilter All\
-Find-InterestingDomainAcl -RightsFilter ResetPassword\
+
+**Get the ACL's associated with the specified prefix to be used for search**
+
+```powershell
+Get-DomainObjectAcl -SearchBase "LDAP://CN=Domain Admins,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local" -ResolveGUIDs -Verbose
+
+Get-ObjectACL -ADSprefix 'CN=Administrator,CN=Users' -Verbose 
+Get-ObjectACL -ADSpath "LDAP://CN=Domain Admins,CN=Users,DC=test,DC=local" - ResolveGUID -Verbose
+
+(Get-Acl 'AD:\CN=Administrator,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local').Access  //no GUIDs will be provided
+```
+
+****
+
+**Get the ACL's associated with the specified path**
+
+```powershell
+Get-PathAcl -Path "\\ds-hostname\sysvol"
+```
+
+**Search for interesting ACL's (Write, modify etc.)**
+
+{% code overflow="wrap" %}
+```powershell
+Find-InterestingDomainAcl -ResolveGUIDs
+Find-InterestingDomainAcl -RightsFilter All
+Find-InterestingDomainAcl -RightsFilter ResetPassword
 Find-InterestingDomainAcl -RightsFilter WriteMember
+Invoke-ACLScanner -ResolveGUIDs 
+Invoke-ACLScanner -ResolveGUIDs | select IdentityReferenceName, ObjectDN, ActiveDirectoryRights | fl 
+```
+{% endcode %}
 
-Invoke-ACLScanner -ResolveGUIDs \
-Invoke-ACLScanner -ResolveGUIDs | select IdentityReferenceName, ObjectDN, ActiveDirectoryRights | fl
+**❗Search of interesting ACL's for the current user (or where the current is memberOf**
 
-**❗Search of interesting ACL's for the current user (or where the current is memberOf**\
-Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "yout-username"}\
-Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "your-member-of-group-name"}\
-Invoke-aclscanner -resolveguids | ?{$\_.IdentityReferenceName -match "RDPUsers"} | select Object DN,ActiveDirectoryRights,IdentityReferenceName\
-\
-Invoke-ACLScanner | Where-Object {$\_.IdentityReferenceName –eq \[System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
+{% code overflow="wrap" %}
+```powershell
+Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "yout-username"}
+Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "your-member-of-group-name"}
+Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "RDPUsers"} | select Object DN,ActiveDirectoryRights,IdentityReferenceName
+
+Invoke-ACLScanner | Where-Object {$_.IdentityReferenceName –eq [System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
+```
+{% endcode %}
+
+****
 
 ## 🚥PowerView Domain trust
 
@@ -333,37 +485,51 @@ Trust Properties
 
 
 
-**Get a list of all the domain trusts for the current domain** \
-Get-DomainTrust | ft\
-Get-DomainTrust -domain dom.local\
-Get-NetDomainTrust\
-Get-NetDomainTrust -Domain domain.local\
-_Get-ADTrust_ \
-_Get-ADTrust -Filter \*_\
-_Get-ADTrust -Identity  domain.local_
+**Get a list of all the domain trusts for the current domain**&#x20;
 
-**Get details about the forest** \
-Get-Forest\
-Get-Forest -forest forestname.local\
-Get-NetForest\
-Get-NetForest -Forest forest.local\
-_Get-ADForest_\
-_Get-ADForest -Identity forest.local_
+```powershell
+Get-DomainTrust | ft
+Get-DomainTrust -domain dom.local
+Get-NetDomainTrust
+Get-NetDomainTrust -Domain domain.local
 
-**❗Ge t all domains in the current/other forest** \
-Get-ForestDomain -verbose\
-Get-ForestDomain -Forest forest.local\
-Get-NetForestDomain \
-Get-NetforestDomain -Forest forestname.local\
-(_Get-ADForest).Domains_\
-_Get-ADForest -Identity eurocorp.local_
+Get-ADTrust 
+Get-ADTrust -Filter *
+Get-ADTrust -Identity  domain.local
+```
 
-**Get global catalogs for the current forest**\
-Get-ForestGlobalCatalog\
-Get-ForestGlobalCatalog -forest forest.local\
-Get-NetForestCatalog\
-Get-NetForestCatalog -Forest forest.local\
-Get-ADForest | select -ExpandProperty GlobalCatalogs
+**Get details about the forest**&#x20;
+
+<pre class="language-powershell"><code class="lang-powershell">Get-Forest
+Get-Forest -forest forestname.local
+Get-NetForest
+Get-NetForest -Forest forest.local
+<strong>
+</strong><strong>Get-ADForest
+</strong>Get-ADForest -Identity forest.local
+</code></pre>
+
+**❗Ge t all domains in the current/other forest**&#x20;
+
+```powershell
+Get-ForestDomain -verbose
+Get-ForestDomain -Forest forest.local
+Get-NetForestDomain 
+Get-NetforestDomain -Forest forestname.local
+
+(Get-ADForest).Domains
+Get-ADForest -Identity eurocorp.local
+```
+
+**Get global catalogs for the current forest**
+
+<pre class="language-powershell"><code class="lang-powershell">Get-ForestGlobalCatalog
+Get-ForestGlobalCatalog -forest forest.local
+Get-NetForestCatalog
+Get-NetForestCatalog -Forest forest.local
+<strong>
+</strong><strong>Get-ADForest | select -ExpandProperty GlobalCatalogs
+</strong></code></pre>
 
 &#x20;**Map trusts of a forest**
 
@@ -372,20 +538,24 @@ Get-ADForest | select -ExpandProperty GlobalCatalogs
 </strong>Get-NetForestTrust 
 Get-NetForestTrust -Forest forest.local
 Get-NetForestDomain -Verbose | Get-NetDomainTrust
+
 Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
 </code></pre>
 
 ## 🔫User Hunting
 
-**❗Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)** \
-****Find-LocalAdminAccess -Verbose
+**❗Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)**&#x20;
 
-. ./Find-WMILocalAdminAccess.ps1\
-Find-WMILocalAdminAccess\
+{% code overflow="wrap" %}
+```powershell
+Find-LocalAdminAccess -Verbose
+. ./Find-WMILocalAdminAccess.ps1
+Find-WMILocalAdminAccess
 Find-WMILocalAdminAccess - Computerfile computer.txt -verbose (all domain Computerhostnames from Get-NetComputer)
-
-. ./Find-PSRemotingLocalAdminAccess.ps1\
+. ./Find-PSRemotingLocalAdminAccess.ps1
 Find-PSRemotingLocalAdminAccess
+```
+{% endcode %}
 
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for a list of computers (Get-NetComputer) and then use multi-threaded Invoke-CheckLocalAdminAccess on each of those machines. Since this function is extremely noisy and can cause a network spike, it is better to run it in chunks of machines (using the option -ComputerFile) rather than all machines at once. The function leaves a 4624 (logon event) or 4634 (logoff event) for each machine on the domain.
@@ -393,41 +563,64 @@ This function queries the DC of the current or provided domain for a list of com
 This same function can also be done with the help of remote administration tools like WMI and powershell remoting. It is pretty useful in cases where ports of RPC and SMB (which are used by Find-LocalAdminAccess) are blocked. In such cases, you can use an alternate tool --> Find-WMILocalAdminAccess.ps1 (this is because, WMI by-default requires local admin access)
 {% endhint %}
 
-**Find local admins on all machines of the domain (needs admin privs on non-dc machines)** \
+**Find local admins on all machines of the domain (needs admin privs on non-dc machines)**
+
+```powershell
 Invoke-EnumerateLocalAdmin -Verbose
+```
 
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for a list of computers (Get-NetComputer) and then use multi-threaded Get-NetLocalGroup on each machine.
 {% endhint %}
 
-**❗Find computers where a specified user/group (domain admins or RDPusers or etc.) has sessions (by-default Domain admins group) - and we have local admin on that machine**\
-****Invoke-UserHunter -Verbose\
-Invoke-UserHunter -GroupName "RDPUsers"
+**❗Find computers where a specified user/group (domain admins or RDPusers or etc.) has sessions (by-default Domain admins group) - and we have local admin on that machine**
 
-**Find active sessions of domain admins**\
-****Invoke-UserHunter -Groupname "Domain Admins"
+```powershell
+Invoke-UserHunter -Verbose
+Invoke-UserHunter -GroupName "RDPUsers"
+```
+
+
+
+**Find active sessions of domain admins**
+
+```powershell
+Invoke-UserHunter -Groupname "Domain Admins"
+```
 
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of computers (Get-NetComputer) and list sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
 {% endhint %}
 
-**To find where our current user has local admin privs on servers that have domain admin sessions**\
-Invoke-UserHunter -CheckAccess
+**To find where our current user has local admin privs on servers that have domain admin sessions**
 
-**Find computers (high value targets) where a domain admin is logged-in**\
-Invoke-UserHunter -Stealth
+```powershell
+Invoke-UserHunter -CheckAccess
+```
+
+**Find computers (high value targets) where a domain admin is logged-in**
+
+```powershell
+Invoke-UserHunter -Stealth 
+```
 
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of **only high value targets** (high traffic servers) - DC, File servers & distributed file servers, for being stealthy and generating lesser traffic and lists sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
 {% endhint %}
 
-**❗Query on the specified host for 100 seconds for any sessions for the user called "administrator"** \
-****Invoke-UserHunter -Computername hostname -poll 100 -username administrator -delay 5 -verbose
+**❗Query on the specified host for 100 seconds for any sessions for the user called "administrator"**&#x20;
 
-****
+{% code overflow="wrap" %}
+```powershell
+Invoke-UserHunter -Computername hostname -poll 100 -username administrator -delay 5 -verbose 
+```
+{% endcode %}
 
-**Manually get Sessions of a Computer**\
-****Get-NetSession -Computername hostname.local
+**Manually get Sessions of a Computer**
+
+```powershell
+Get-NetSession -Computername hostname.local 
+```
 
 ****
 
