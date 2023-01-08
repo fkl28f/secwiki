@@ -13,6 +13,11 @@
 * Credentials are not left on target unless CredSSP/Unconstraned Delegation?
 * Runs in process "wsmprovhost" and is stateful
 
+## **Connections / WinrRS**
+
+**Windows Remote Management (cmd.exe)**\
+winrs -r:hostname cmd
+
 ## **Connections / PowerShellRemoting**
 
 **Access C disk of a computer (check local admin)**\
