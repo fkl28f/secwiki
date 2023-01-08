@@ -1,4 +1,4 @@
-# Local Privilege Escalation
+# Local Privilege Escalation / AV Bypass
 
 ## Ways for local privesc
 
