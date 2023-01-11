@@ -3,6 +3,7 @@
 * [SecWiki](README.md)
 * [🎯 Active Directory](active-directory.md)
 * [Local Privilege Escalation / AV Bypass](local-privilege-escalation.md)
+* [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
 * [AD - Basics & PowerShell Basics](ad-basics-and-powershell-basics.md)
 * [AD - Domain Enumeration](ad-domain-enumeration.md)
 * [AD - Lateral Movement / Connections](ad-lateral-movement-connections.md)
@@ -11,7 +12,6 @@
 * [AD - Privilege Escalation](ad-privilege-escalation.md)
 * [AD - Trust Abuse - Cross-Forest Attacks / MSSQL](ad-trust-abuse-cross-forest-attacks-mssql.md)
 * [AD - Detection and Defense](ad-detection-and-defense.md)
-* [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
 
 ## 📱 Mobile Application Security
 

@@ -214,7 +214,7 @@ Tier 2 - Administrative accounts user workstation/devices. Helpdesk, Support etc
 
 * Control Restrictions: What admins Control
 
-<figure><img src=".gitbook/assets/image (2).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (3).png" alt=""><figcaption></figcaption></figure>
 
 * Logon  Restriction: Where admins can log-on to
 

