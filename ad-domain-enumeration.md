@@ -618,7 +618,7 @@ Invoke-UserHunter -Verbose
 Invoke-UserHunter -GroupName "RDPUsers"
 ```
 
-**❗Find active sessions of domain admins**
+**❗Find active sessions of domain admins (with the current user, admin rights on target required)**
 
 <pre class="language-powershell"><code class="lang-powershell"><strong>Find-DomainUserLocation -verbose
 </strong><strong>Invoke-UserHunter -Groupname "Domain Admins"

@@ -2,6 +2,7 @@
 
 * [SecWiki](README.md)
 * [🎯 Active Directory](active-directory.md)
+* [Methodology](methodology.md)
 * [Local Privilege Escalation / AV Bypass](local-privilege-escalation.md)
 * [Bloodhound/Sharphound Basics](bloodhound-sharphound-basics.md)
 * [AD - Basics & PowerShell Basics](ad-basics-and-powershell-basics.md)

