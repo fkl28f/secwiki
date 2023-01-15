@@ -44,7 +44,6 @@ $sess = New-PSSession -Computername hostname.local
 $sess = New-PSSession -Computername hostname.local -credential
 Enter-PSSession $sess
 
-
 No local file be included in Enter-PSSession/New-PSSession
 ```
 

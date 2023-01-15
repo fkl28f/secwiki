@@ -580,6 +580,7 @@ Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
 
 {% code overflow="wrap" %}
 ```powershell
+Find-DomainUserLocation -verbose
 Find-LocalAdminAccess -Verbose  ==> Results weird?!?!
 
 . ./Find-WMILocalAdminAccess.ps1
