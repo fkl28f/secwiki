@@ -547,7 +547,9 @@ Get-ForestDomain -forest otherforest.local | %{Get-DomainTrust -Domain $_.Name}
 **List only external trusts for one forest and all its domains**
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Get-ForestDomain | %{Get-DomainTrust -Domain $_.Name} | ?{$_.TrustAttributes -eq "FILTER_SIDS"}
-</strong></code></pre>
+</strong>(Get-ADForest).Domains | %{Get-ADTrust -Filter '(intraForest -ne $True) -and (ForestTransitive -ne $True)' -Server $_}
+Get-ADTrust -Filter '(intraForest -ne $True) -and (ForestTransitive -ne $True)'
+</code></pre>
 
 **Get global catalogs for the current forest**
 

