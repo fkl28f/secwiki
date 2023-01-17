@@ -2,6 +2,8 @@
 
 ## New User
 
+\=> New Bloodhound
+
 Enumerate where you have local admin with the new user
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Find-LocalAdminAccess -Verbose  ==> Results weird?!?!
@@ -24,6 +26,17 @@ Enumerate Sessions with the new privs, because you need to be local admin&#x20;
 ```powershell
 Invoke-Userhunter -groupname "domain admins"
 ```
+
+Find modifieable ACLs with user / Member Groups
+
+{% code overflow="wrap" %}
+```powershell
+Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "yourusername"}
+Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "GroupName"}
+```
+{% endcode %}
+
+
 
 ### New Computer
 

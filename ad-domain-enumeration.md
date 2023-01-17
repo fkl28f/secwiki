@@ -576,23 +576,30 @@ Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
 
 ## 🔫User Hunting
 
-**❗Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)**&#x20;
+**❗ Find machines where the current user can PSRemote into as local admin**
 
-{% code overflow="wrap" %}
 ```powershell
-Find-DomainUserLocation -verbose
-Find-LocalAdminAccess -Verbose  ==> Results weird?!?!
+. ./Find-PSRemotingLocalAdminAccess.ps1
+Find-PSRemotingLocalAdminAccesshe
+
+winrs -r:hostnamee cmd
+Enter-PSSession -ComputerName hostname.fqdn.local
 
 . ./Find-WMILocalAdminAccess.ps1
 Find-WMILocalAdminAccess
 Find-WMILocalAdminAccess - Computerfile computer.txt -verbose (all domain Computerhostnames from Get-NetComputer)
 winrs -r:hostname cmd
 Enter-PSSession -ComputerName hostname.fqdn.local
+```
 
-. ./Find-PSRemotingLocalAdminAccess.ps1
-Find-PSRemotingLocalAdminAccess
-winrs -r:hostnamee cmd
-Enter-PSSession -ComputerName hostname.fqdn.local
+****
+
+**❗Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)**&#x20;
+
+{% code overflow="wrap" %}
+```powershell
+Find-DomainUserLocation -verbose
+Find-LocalAdminAccess -Verbose  ==> Results weird?!?!
 ```
 {% endcode %}
 
