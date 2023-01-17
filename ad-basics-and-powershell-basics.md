@@ -71,6 +71,10 @@ $ExecutionContext.SessionState.LanguageMode = 'fulllanguage' ==> Not really poss
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections 
 ```
 
+**Invoke-mimikatz when Constrained Language mode is in place**
+
+So, we must modify Invoke-Mimikatz.ps1 to include the function call in the script itself and transfer the modified script (Invoke-MimikatzEx.ps1) to the target server.
+
 ### Execute .PS1 File / PowerView
 
 {% code overflow="wrap" %}
