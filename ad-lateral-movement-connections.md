@@ -41,7 +41,7 @@ Use winrm.vbs and/or COM objects of WSMan object https://github.com/bohops/WSMan
 
 ```powershell
 $sess = New-PSSession -Computername hostname.local
-$sess = New-PSSession -Computername hostname.local -credential
+$sess = New-PSSession -Computername hostname.local -credential username
 Enter-PSSession $sess
 
 No local file be included in Enter-PSSession/New-PSSession

@@ -8,9 +8,9 @@
 * [AD - Basics & PowerShell Basics](ad-basics-and-powershell-basics.md)
 * [AD - Domain Enumeration](ad-domain-enumeration.md)
 * [AD - Lateral Movement / Connections](ad-lateral-movement-connections.md)
+* [AD - Privilege Escalation](ad-privilege-escalation.md)
 * [AD - Domain Dominance / Persistence](ad-domain-dominance-persistence.md)
   * [AD - Forest Persistence - DCShadow](ad-domain-dominance-persistence/ad-forest-persistence-dcshadow.md)
-* [AD - Privilege Escalation](ad-privilege-escalation.md)
 * [AD - Trust Abuse - Cross-Forest Attacks / MSSQL](ad-trust-abuse-cross-forest-attacks-mssql.md)
 * [AD - Detection and Defense](ad-detection-and-defense.md)
 

