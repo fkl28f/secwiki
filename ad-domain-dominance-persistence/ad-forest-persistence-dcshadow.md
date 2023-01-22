@@ -98,7 +98,7 @@ Append the following ACEs with our User SID on the domain object (see above):
 ```
 {% endcode %}
 
-![](<../.gitbook/assets/image (4).png>)
+![](<../.gitbook/assets/image (4) (3).png>)
 
 <pre><code><strong>On the attacker computer object (A;;WP;;;UserSID)
 </strong>On the target user object (so that it can modify its own attributes) (A;;WP;;;UserSID)

@@ -119,7 +119,7 @@ A child domain compromise we have to assume forest compromise. With cross-forest
 * 90 day free trial
 * ATA can detect:
 
-<figure><img src=".gitbook/assets/image (7).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (7) (1).png" alt=""><figcaption></figcaption></figure>
 
 Silver Tickets?
 
@@ -218,7 +218,7 @@ Tier 2 - Administrative accounts user workstation/devices. Helpdesk, Support etc
 
 * Logon  Restriction: Where admins can log-on to
 
-<figure><img src=".gitbook/assets/image (1).png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (1) (3).png" alt=""><figcaption></figcaption></figure>
 
 Tier 1 => Tier 0 access should be really restricted and really role-based etc!
 

