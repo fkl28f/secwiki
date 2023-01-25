@@ -11,8 +11,9 @@
 * [AD - Privilege Escalation](ad-privilege-escalation.md)
 * [AD - Domain Dominance / Persistence](ad-domain-dominance-persistence.md)
   * [AD - Forest Persistence - DCShadow](ad-domain-dominance-persistence/ad-forest-persistence-dcshadow.md)
-* [AD - Trust Abuse - Cross-Forest Attacks / MSSQL](ad-trust-abuse-cross-forest-attacks-mssql.md)
+* [AD - Trust & Certificate Service Abuse](ad-trust-and-certificate-service-abuse.md)
 * [AD - Detection and Defense](ad-detection-and-defense.md)
+* [AD - MSSQL](ad-mssql.md)
 
 ## 📱 Mobile Application Security
 

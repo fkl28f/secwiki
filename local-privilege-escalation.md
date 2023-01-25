@@ -47,6 +47,14 @@ Get-ModifiableServiceFile -Verbose
 Get-ModifiableService -Verbose 
 ```
 
+## Find all writeable directories
+
+**Find writeable folders (not recursive) for a user on a specific path**\
+&#x20;.\accesschk.exe -d -w yourusername C:\Windows\system32\*
+
+**Find writeable folders recursively for a user on a specific path**\
+&#x20;.\accesschk.exe -s -d -w yourusername C:\\\*
+
 ## Abusing Enterprise Applications
 
 * If Windows based, the often run as SYSTEM or Local Administrator
@@ -193,3 +201,40 @@ Invoke-ServiceAbuse -Name 'AbyssWebServer' -UserName '<domain>\<username>'
 ```
 
 {% embed url="https://github.com/S1ckB0y1337/WinPwn" %}
+
+## WMI
+
+
+
+{% embed url="https://github.com/secabstraction/WmiSploit" %}
+
+```
+Enter-WmiShell -ComputerName desktop-1st179m -UserName netbiosX
+Invoke-WmiCommand -ComputerName desktop-1st179m -ScriptBlock {tasklist}
+```
+
+{% embed url="https://github.com/FortyNorthSecurity/WMImplant" %}
+
+```
+Import-Module .\WMImplant.ps1
+Invoke-WMImplant
+```
+
+**`WMI Commands`**
+
+{% code overflow="wrap" %}
+```powershell
+wmic process call create "calc.exe"
+wmic process where name="calc.exe" call terminate
+wmic environment list
+Turn on Remoted Desktop Remotely: wmic /node:"servername" /user:"user@domain" /password: "password" RDToggle where ServerName="server name" call SetAllowTSConnections 1
+
+wmic useraccount list
+wmic group list
+
+wmic share list
+
+
+wmic qfe list
+```
+{% endcode %}

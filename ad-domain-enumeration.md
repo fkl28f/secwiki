@@ -485,7 +485,7 @@ Trust Properties
 * Non-transitive trust - Cannot be extended to other domains in the forest. Can be two-way or one-way. This is default trust (called external trust) between two domains in different forests when forests do not have any trust relationship
 {% endhint %}
 
-![](<.gitbook/assets/image (9).png>)
+![](<.gitbook/assets/image (9) (1).png>)
 
 {% hint style="info" %}
 **Types of Trusts**

