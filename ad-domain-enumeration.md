@@ -368,11 +368,8 @@ Get-GPO -Guid ID
 
 **Enumerate permissions for GPOs where users with RIDs of > 1000 have some kind of modification/control rights**
 
-{% code overflow="wrap" %}
-```powershell
-Get-DomainObjectAcl -LDAPFilter '(objectCategory=groupPolicyContainer)' | ? { ($_.SecurityIdentifier -match '^S-1-5-.*-[1-9]\d{3,}$') -and ($_.ActiveDirectoryRights -match 'WriteProperty|GenericAll|GenericWrite|WriteDacl|WriteOwner')} | select ObjectDN, ActiveDirectoryRights, SecurityIdentifier | fl
-```
-{% endcode %}
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Get-DomainObjectAcl -LDAPFilter '(objectCategory=groupPolicyContainer)' | ? { ($_.SecurityIdentifier -match '^S-1-5-.*-[1-9]\d{3,}$') -and ($_.ActiveDirectoryRights -match 'WriteProperty|GenericAll|GenericWrite|WriteDacl|WriteOwner')} | select ObjectDN, ActiveDirectoryRights, SecurityIdentifier | fl
+</strong></code></pre>
 
 
 
@@ -417,18 +414,20 @@ Get-ObjectACL -SamAccountName [username] -ResolveGUIDS
 
 **Get the ACL's associated with the specified prefix to be used for search**
 
+{% code overflow="wrap" %}
 ```powershell
 Get-DomainObjectAcl -SearchBase "LDAP://CN=Domain Admins,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local" -ResolveGUIDs -Verbose
+
+Get-DomainObjectAcl -Identity "Domain Admins" -ResolveGUIDs –Verbose
 
 Get-ObjectACL -ADSprefix 'CN=Administrator,CN=Users' -Verbose 
 Get-ObjectACL -ADSpath "LDAP://CN=Domain Admins,CN=Users,DC=test,DC=local" - ResolveGUID -Verbose
 
 (Get-Acl 'AD:\CN=Administrator,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local').Access  //no GUIDs will be provided
 ```
+{% endcode %}
 
-****
-
-**Get the ACL's associated with the specified path**
+**Set the ACL's associated with the specified path**
 
 ```powershell
 Get-PathAcl -Path "\\ds-hostname\sysvol"
@@ -438,7 +437,8 @@ Get-PathAcl -Path "\\ds-hostname\sysvol"
 
 {% code overflow="wrap" %}
 ```powershell
-Find-InterestingDomainAcl -ResolveGUIDs
+❗Find-InterestingDomainAcl -ResolveGUIDs
+
 Find-InterestingDomainAcl -RightsFilter All
 Find-InterestingDomainAcl -RightsFilter ResetPassword
 Find-InterestingDomainAcl -RightsFilter WriteMember
@@ -449,15 +449,14 @@ Invoke-ACLScanner -ResolveGUIDs | select IdentityReferenceName, ObjectDN, Active
 
 **❗Search of interesting ACL's for the current user (or where the current is memberOf**
 
-{% code overflow="wrap" %}
-```powershell
-Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "yout-username"}
-Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "your-member-of-group-name"}
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "yout-username"}
+</strong>Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "your-member-of-group-name"}
 Invoke-aclscanner -resolveguids | ?{$_.IdentityReferenceName -match "RDPUsers"} | select Object DN,ActiveDirectoryRights,IdentityReferenceName
 
+Find-InterestingDomainAcl | Where-Object {$_.IdentityReference –eq [System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
+
 Invoke-ACLScanner | Where-Object {$_.IdentityReferenceName –eq [System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
-```
-{% endcode %}
+</code></pre>
 
 ****
 
@@ -582,7 +581,7 @@ Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
 
 ```powershell
 . ./Find-PSRemotingLocalAdminAccess.ps1
-Find-PSRemotingLocalAdminAccesshe
+Find-PSRemotingLocalAdminAccess
 
 winrs -r:hostnamee cmd
 Enter-PSSession -ComputerName hostname.fqdn.local
@@ -625,6 +624,7 @@ This function queries the DC of the current or provided domain for a list of com
 
 ```powershell
 Invoke-UserHunter -Verbose
+Invoke-UserHunter -CheckAccess  //check if we have local admin on target
 Invoke-UserHunter -GroupName "RDPUsers"
 ```
 
@@ -638,13 +638,14 @@ Invoke-UserHunter -GroupName "RDPUsers"
 This function queries the DC of the current or provided domain for members of the given group (Domain admins by default) using Get-NetGroupMember, gets a list of computers (Get-NetComputer) and list sessions and logged on users (Get-NetSession / Get-NetLoggedon) from each machine
 {% endhint %}
 
-**❗To find where our current user has local admin privs on servers that have domain admin sessions**
+**❗To find where our current user has local admin privs on servers that have domain admin sessions** &#x20;
 
-<pre class="language-powershell"><code class="lang-powershell"><strong>Find-DomainUserLocation -CheckAccess
-</strong><strong>Invoke-UserHunter -CheckAccess
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-UserHunter -CheckAccess
+<strong>Find-DomainUserLocation -CheckAccess    // PowerView Dev!! doesn't check if we have access?
+</strong><strong>
 </strong></code></pre>
 
-**Find computers (high value targets) where a domain admin is logged-in**
+**Find computers (high value targets only) where a domain admin is logged-in**
 
 ```powershell
 Find-DomainUserLocation -Stealth
