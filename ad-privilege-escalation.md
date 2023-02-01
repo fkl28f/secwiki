@@ -235,6 +235,7 @@ After Step 6, the DC checks, if the User is marked as "Account is sensitive and 
 
 ### Requirement
 
+* You need to have local admin on the host on which UD is enabled
 * The service account of e.g. Webserver must be trusted for delegation to be able to make requests as a user
 * The user must not be marked as "Account is sensitive and cannot be delegated".
 * Maybe you have to wait until some interesting users connect

