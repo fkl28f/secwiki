@@ -62,7 +62,7 @@ Can be configured via AppLoker or Windows Defender Application Mode in Enforceme
 
 Constrained language mode is only for Powershellv5.1, v7 - if attacker can run Powershellv2 no language mode enforcement is possible.
 
-**Set language mode - usually doesnt work**
+**Set language mode - sometimes doesnt work - admin?**
 
 ```powershell
 $ExecutionContext.SessionState.LanguageMode = 'fulllanguage'

