@@ -128,10 +128,10 @@ Get-DomainUser -LDAPFilter "Description=*built*" | Select name, description
 Get-ADUser -Filter 'Description -like "*built"' -Properties Description | select name,description
 ```
 
-**Convert SID to Username**
+**Convert SID to Username / Name**
 
-<pre class="language-powershell"><code class="lang-powershell"><strong>convert-sidtoname
-</strong><strong>
+<pre class="language-powershell"><code class="lang-powershell">"S-1-5-21-3146393536-1393405867-2905981701-1000" | convert-sidtoname
+<strong>-or-
 </strong><strong>$SID ='S-1-5-21-1924530255-1943933946-939161726-500'
 </strong>$objSID = New-Object System.Security.Principal.SecurityIdentifier($SID)
 $objUser = $objSID.Translate([System.Security.Principal.NTAccount])

