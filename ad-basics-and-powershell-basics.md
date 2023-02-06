@@ -90,6 +90,12 @@ C:\Windows\System32\WindowsPowershell\v1.0\powershell.exe
 $ExecutionContext.SessionState.LanguageMode
 ```
 
+CLM bypass?
+
+[https://github.com/padovah4ck/PSByPassCLM](https://github.com/padovah4ck/PSByPassCLM)\
+[https://github.com/aress31/clm-rout](https://github.com/aress31/clm-rout)\
+[https://github.com/calebstewart/bypass-clm](https://github.com/calebstewart/bypass-clm)
+
 ### Execute .PS1 File / PowerView
 
 {% code overflow="wrap" %}
