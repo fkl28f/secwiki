@@ -40,10 +40,9 @@ Get-DomainSID
 
 **Get Domaincontroller**
 
-```powershell
-Get-DomainController
-Get-DomainController -domain test.local
-```
+<pre class="language-powershell"><code class="lang-powershell">Get-DomainController
+<strong>Get-DomainController -domain test.local
+</strong></code></pre>
 
 **Get Overview of all Trusts**
 
