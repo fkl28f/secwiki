@@ -19,13 +19,11 @@
 
 **Discovery (SPN Scanning)**
 
-{% code overflow="wrap" %}
-```powershell
-Get-SQLInstanceDomain
-
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Import-module .\PowerUpSQL.ps1
+</strong><strong>Get-SQLInstanceDomain
+</strong>
 //Gets all SPNs which start with MSSQL - maybe no SQL Server is running (anymore)
-```
-{% endcode %}
+</code></pre>
 
 **Check Accessibility**
 
