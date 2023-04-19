@@ -7,7 +7,7 @@
   * Credential Guard, Protected User Group and protected process lsass protection is rendered useless if a service runs as DA. Because for services the secrets are stored in the lsasecret: [https://devblogs.microsoft.com/scripting/use-powershell-to-decrypt-lsa-secrets-from-the-registry/](https://devblogs.microsoft.com/scripting/use-powershell-to-decrypt-lsa-secrets-from-the-registry/)
 * Check out Temporary Group Membership (Requires Privileged Access Management Feature to be enabled which cant be turned off later) - Allow DA for only 20 minutes
 
-<pre data-overflow="wrap"><code><strong>Add-ADGroupMember -Identity 'Domain Admins' -Member newDAUsername -MemberTimetoLive (New-TimeSpan -minutes 20)
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Add-ADGroupMember -Identity 'Domain Admins' -Member newDAUsername -MemberTimetoLive (New-TimeSpan -minutes 20)
 </strong></code></pre>
 
 ## **Golden Ticket**
@@ -126,7 +126,7 @@ Silver Tickets?
 {% embed url="https://learn.microsoft.com/en-us/advanced-threat-analytics/what-is-ata" %}
 
 **Bypass Enumeration**\
-****Invoke-UserHunter -verbose  //exclude the DC host itself! It is pointless, because Domain Admin is ok to be logged on\
+Invoke-UserHunter -verbose  //exclude the DC host itself! It is pointless, because Domain Admin is ok to be logged on\
 \
 Get-NetComputer => Save to file and delete DCs\
 Invoke-UserHunter -computerfile savedfile.txt
@@ -134,7 +134,7 @@ Invoke-UserHunter -computerfile savedfile.txt
 **Bypass Over-Pass-The-Hash Attack**
 
 Encryption method\
-****![](<.gitbook/assets/image (8).png>)
+![](<.gitbook/assets/image (8).png>)
 
 **Bypass Golden Ticket**&#x20;
 

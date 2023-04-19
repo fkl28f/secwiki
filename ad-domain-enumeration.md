@@ -188,13 +188,47 @@ Enterprise Admin, Schema Admins, Enterprise Key Admins are missing from the resu
 Get-NetGroup - Groupname \*admin\* -Domain rootdom.local
 {% endhint %}
 
-**Get the group membership of a user**&#x20;
+**Get the group membership of a user (not recursively)**
 
 ```powershell
 Get-DomainGroup -Username "username"
 Get-NetGroup -Username "username"
 
 Get-ADPrincipalGroupMembership -Identity student1 
+```
+
+**Get the group membership of a user recursively!**&#x20;
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Import-Module .\Microsoft.ActiveDirectory.Management.dll -Verbose
+<strong>Import-Module .\ActiveDirectory\ActiveDirectory.psd1
+</strong><strong>Import-Module .\Get-ADPrincipalGroupMembershipRecursive.ps1
+</strong>
+Content of Get-ADPrincipalGroupMembershipRecursive.ps1:
+function Get-ADPrincipalGroupMembershipRecursive ($SamAccountName)
+{
+ $groups = @(Get-ADPrincipalGroupMembership -Identity $SamAccountName |
+select -ExpandProperty distinguishedname)
+ $groups
+ if ($groups.count -gt 0)
+ {
+ foreach ($group in $groups)
+ {
+ Get-ADPrincipalGroupMembershipRecursive $group
+ }
+ }
+}
+
+Then run:
+Get-ADPrincipalGroupMembershipRecursive 'studentuserx'
+
+<strong>- OR -
+</strong>https://gist.githubusercontent.com/paulfijma/2beb3517203c34e63957fbffd1c877c2/raw/42e99ff2f734c98b604a30366cca00f9498942d6/Get-ADPrincipalGroupMembershipRecursive.ps1
+</code></pre>
+
+**Add a User to a Group**
+
+```powershell
+Add-ADGroupMember -Identity GroupNameHere -Members studentuserx -Verbose
 ```
 
 **List all the local groups on a machine (needs admin privs on non-dc machines)**
@@ -241,6 +275,9 @@ Get-DomainComputer | select name
 Get-DomainComputer | select operatingsystem
 Get-DomainComputer | select operatingsystem
 
+All computers within an OU
+Get-DomainComputer -SearchBase "LDAP://OU=ouname,DC=sub,DC=dom,DC=local"
+
 Get-NetComputer -ping
 Get-NetComputer -FullData 
 Get-NetComputer -OperatingSystem "*Server 2016*"
@@ -263,9 +300,9 @@ Get-NetComputer -fulldata | select samaccountname, operatingsystem, operatingsys
 ```
 {% endcode %}
 
-****\
-****📃 PowerView shares
------------------------
+\
+📃 PowerView shares
+-------------------
 
 **Find shared on hosts in the current domain** (readable or writeable ones)
 
@@ -584,7 +621,7 @@ Get-NetForestDomain -Verbose | Get-NetDomainTrust
 Get-ADTrust -Filter 'msDS-TrustForestTrustInfo -ne "$null"'
 </code></pre>
 
-****
+
 
 
 
@@ -606,7 +643,7 @@ winrs -r:hostname cmd
 Enter-PSSession -ComputerName hostname.fqdn.local
 ```
 
-****
+
 
 **❗Find all machines on the current domain where the current user has local admin access / Contacting not only DC (noisy...)**&#x20;
 
@@ -679,7 +716,7 @@ Invoke-UserHunter -Computername hostname -poll 100 -username administrator -dela
 Get-NetSession -Computername hostname.local 
 ```
 
-****
+
 
 ## **🛡Defense against Enumeration / User Hunting**
 
@@ -708,10 +745,9 @@ Another intersting script is SAMRi10 which hardens W10 and Server 2016 against e
 
 
 
-****
 
 
 
 
 
-__
+

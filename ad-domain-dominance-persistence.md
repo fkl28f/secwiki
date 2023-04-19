@@ -147,7 +147,7 @@ C:\AD\Tools\BetterSafetyKatz.exe "kerberos::golden /User:Administrator /domain:d
 {% endhint %}
 
 **List tasks**\
-****schtasks /S hostname.dom.local
+schtasks /S hostname.dom.local
 
 ## 💎Diamond Ticket
 
@@ -350,7 +350,7 @@ All logons on the DC are logged to C:\Windows\System32\mimilsa.log
 * Resides in the System container of a domain and used to control the permissions, using an ACL, for certain built-in privileged groups (called Protected Groups)
 * ❓ AdminSDHolder its own ACL is used for Protected Groups
 * Security Descriptor Propagator (SDPROP) runs every hour and compares the ACL of Protected Groups/AdminSDholder and overwrites all members of Protected Group ACLs with the ACLs of the AdminSDholder
-* Protected Groups are: Domain Admins, Administrators, Enterpse Admins, Domain Controllers, Read-only Domain Controllers, Schema AdminsAccount Operators, Backup Operators, Server Operators, Print Operators, Replicator\
+* Protected Groups are: Domain Admins, Administrators, Enterpse Admins, Domain Controllers, Read-only Domain Controllers, Schema Admins, Account Operators, Backup Operators, Server Operators, Print Operators, Replicator\
   ❓ Protected User group as well
 *   Well known abuse of Proteced Groups - see following permissions\
 
@@ -364,7 +364,7 @@ All logons on the DC are logged to C:\Windows\System32\mimilsa.log
 ### Tools
 
 **Attack**\
-****Modify the Permissions of AdminSDholder and add your Account as member via GUI or remotely.
+Modify the Permissions of AdminSDholder and add your Account as member via GUI or remotely.
 
 Add FullControl permissions for a user to the AdminSDHolder using PowerView as DomainAdmin:
 
@@ -607,7 +607,7 @@ Invoke-Command -scriptblock{whoami} -computername dchost.dc.local => Works
 ```
 {% endcode %}
 
-~~**PSRemoting: On remote machine remove user1**  ~~  **- not stable after August 2020 patches**
+~~**PSRemoting: On remote machine remove user1**~~  **- not stable after August 2020 patches**
 
 {% code overflow="wrap" %}
 ```powershell
