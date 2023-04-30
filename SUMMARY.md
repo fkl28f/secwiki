@@ -13,6 +13,7 @@
   * [AD - Forest Persistence - DCShadow](ad-domain-dominance-persistence/ad-forest-persistence-dcshadow.md)
 * [AD - Trust & Certificate Service Abuse](ad-trust-and-certificate-service-abuse.md)
 * [AD - MSSQL](ad-mssql.md)
+* [AD - Cross Domain Attacks / Azure AD](ad-cross-domain-attacks-azure-ad.md)
 * [AD - Detection and Defense](ad-detection-and-defense.md)
 
 ## 📱 Mobile Application Security
