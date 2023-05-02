@@ -552,16 +552,16 @@ Trust Properties
 
 **Get a list of all the domain trusts for the current domain**&#x20;
 
-```powershell
-Get-DomainTrust | ft
+<pre class="language-powershell" data-overflow="wrap"><code class="lang-powershell">Get-DomainTrust | ft
 Get-DomainTrust -domain dom.local
 Get-NetDomainTrust
 Get-NetDomainTrust -Domain domain.local
 
 Get-ADTrust 
-Get-ADTrust -Filter *
-Get-ADTrust -Identity  domain.local
-```
+<strong>❗Get-ADTrust -Filter *
+</strong><strong>  SIDFilteringForestAware is set to True, it means SIDHistory is enabled across the forest trust.
+</strong>Get-ADTrust -Identity  domain.local
+</code></pre>
 
 **Get details about the forest**&#x20;
 

